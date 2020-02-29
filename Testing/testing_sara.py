@@ -7,7 +7,10 @@ import copy
 
 # Function to extract frames 
 def FrameCapture(path): 
-      
+    """
+    To reconstruct the video with the bounding boxes we need to extract the frames
+    and save them somewhere
+    """
     # Path to video file 
     vidObj = cv2.VideoCapture(path + "/vdo.avi") 
   
@@ -62,8 +65,10 @@ path = "C:/Users/Sara/Datos/Master/M6/Week1/AICity_data/train/S03/c010"
 
 
 def read_nd_sort_gt(path):
-    
-
+    """
+    Reads the .xml file for the GT for the cars and sorts the 
+    detections by frames
+    """
     tree = ET.parse(path)
 
     root = tree.getroot()
@@ -80,6 +85,7 @@ def read_nd_sort_gt(path):
                          float(c.attrib['xbr']),
                          float(c.attrib['ybr'])]
                 gt_bb.append(lista)
+    #Sort by frames            
     gt_bb = sorted(gt_bb, key=lambda x: x[0])
     return gt_bb
 
@@ -111,7 +117,9 @@ cv2.waitKey(0)
 
 
 def animation_bb(name, form, bb_cords, frame_path, fps, seconds, width, height):
-    
+    """
+    Records a video for a single bounding box.
+    """
     if len(bb_cords) == 7:
         confid = True
     else:
@@ -167,6 +175,10 @@ def animation_bb(name, form, bb_cords, frame_path, fps, seconds, width, height):
 #%%
     
 def gauss_noisy_bb(gt_bb):
+    """
+    Function that adds noise to the image 
+    WE WILL HAVE TO CHECK THE EFFECT OF CHANGING THE NOISE LEVEL
+    """
     np.random.seed(2373)
     noisy_bb = copy.deepcopy(gt_bb)
                         
@@ -179,13 +191,17 @@ def gauss_noisy_bb(gt_bb):
 
 def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, width, height):
     """
+    This function records a video of some frames with both the GT (green) 
+    and detection (blue) bounding boxes. If we have a confidence value that number 
+    is added on top of the bounding box.
     Input
         Name: Name of the file to save
         form: format of the file, it can be .avi or .gif (. must be included)
-        
-        
+        gt_bb: ground truth bounding boxes in the same format as reed
+        bb_cords: bounding box for the detection        
     """
     
+    #in case we have a confidence value in the detection
     if len(bb_cords) == 7:
         confid = True
     else:
@@ -216,7 +232,7 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, width, 
                                   (int(bb_cords[ar][4]), int(bb_cords[ar][5])), (255,0,0), 2)
             
             if confid:
-                cv2.putText(frame1,str(bb_cords[ar][6]),
+                cv2.putText(frame1,str(bb_cords[ar][6]) + " %",
                             (int(bb_cords[i][2]), int(bb_cords[i][3])-10), 
                             font, 0.5, (255,0,0), 2, cv2.LINE_AA)
     
@@ -240,14 +256,68 @@ FPS = 10
 seconds = 20
 name = 'holahola'
 form = '.avi'
-frame_path = "C:/Users/Sara/Datos/Master/M6/Week1/AICity_data/train/S03/c010/data/"
+frame_path = "./AICity_data/train/S03/c010/data/"
 
 
 
-a = animation_2bb(name, form, gt_bb, gauss_noisy_bb(gt_bb), frame_path, FPS, seconds, width, height)
+#a = animation_2bb(name, form, gt_bb, gauss_noisy_bb(gt_bb), frame_path, FPS, seconds, width, height)
+
+
+path = "./AICity_data/train/S03/c010/det/det_mask_rcnn.txt"
+def read_detection(path):
+    """
+    Function that reads a .txt file for the detection
+    It adds an id just in case and to make things easier
+    """
+    lines = open(path).read().splitlines()
+    bb = []
+    for l in lines:
+        fields = l.split(",")    
+        test_list = [float(fields[0]), # frame
+                     0, #id
+                     float(fields[2]), # xTopLeft
+                     float(fields[3]), # yTopLeft
+                     float(fields[4]), # xBottomRight
+                     float(fields[5]), # yBottomRight
+                     float(fields[6])] # confidence
+        bb.append(test_list)
+    return bb
+
+rcnn_bb = read_detection(path)
 
 
 
 
+
+"""
+IN PROGRESS
+"""
+iou_th = 0.5
+
+nogt_bb = gauss_noisy_bb(gt_bb)
+
+lst_gt = [item[0] for item in gt_bb]
+lst_nogt = [item[0] for item in nogt_bb]
+
+last_frame = np.max(lst_gt)
+
+
+all_ious = []
+for f_val in range(0, last_frame):
+    args_gt = [i for i, num in enumerate(lst_gt) if num == f_val]
+    args_nogt = [i for i, num in enumerate(lst_nogt) if num == f_val]
+    for i_nogt in args_nogt:
+        correct = False
+        ious = []
+        for i_gt in args_gt:
+            iou = bbox_iou(gt_bb[i_gt][2:6], nogt_bb[i_nogt][2:6])
+            ious.append(iou)
+            if iou>iou_th:
+                correct = True
+        if correct == False:
+            print('hola')
+        all_ious.append(max(ious))
+    
+        
 
 
