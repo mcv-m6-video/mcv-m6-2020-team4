@@ -1,4 +1,6 @@
 import os
+import numpy as np
+import copy
 
 import pandas as pd
 import xmltodict
@@ -53,3 +55,17 @@ def filter_annots(annots, classes):
 
 def add_noise_to_boxes(annots):
     noise_function = lambda x: x
+
+
+def add_gauss_noise_to_bboxes(gt_bb, std):
+    """
+    Function that adds noise to the image
+    WE WILL HAVE TO CHECK THE EFFECT OF CHANGING THE NOISE LEVEL
+    """
+    np.random.seed(2373)
+    noisy_bb = copy.deepcopy(gt_bb)
+
+    for i, bb in enumerate(gt_bb):
+        for j, val in enumerate(bb):
+            noisy_bb[i][j] = float(val) + float(np.random.normal(0,std,1))
+    return noisy_bb
