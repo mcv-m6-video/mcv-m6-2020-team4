@@ -55,13 +55,13 @@ def evaluate(sorted_boxes, labels, ious):
 
 if __name__ == '__main__':
     dataset_folder = 'datasets/AICity_data/train/S03/c010/'
-    gt_file = dataset_folder + 'gt/gt.txt'
+    #gt_file = dataset_folder + 'gt/gt.txt'
 
     mask_predictions = dataset_folder + 'det/det_mask_rcnn.txt'
     ssd_predictions = dataset_folder + 'det/det_ssd512.txt'
     yolo_predictions = dataset_folder + 'det/det_yolo3.txt'
 
-    gt = read_detections(gt_file)
+    #gt = read_detections(gt_file)
     # df_mask = read_detections(mask_predictions)
     # df_ssd = read_detections(ssd_predictions)
     # df_yolo = read_detections(yolo_predictions)

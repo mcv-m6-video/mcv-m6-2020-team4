@@ -42,7 +42,7 @@ def animate_iou(dict_frame_gt_bb):
             iou += bbox_iou([float(i) for i in gt_bb], noisy_bb[i])
         ious.append(iou/len(value))
     frames = list(range(0, len(ious)))
-    animation = plot_animation(frames, ious,"Frame", "IoU", [0,1], 24)
+    animation = plot_animation(frames, ious,"Frame", "IoU", [0,1], 10)
     return animation
 
 if __name__ == '__main__':
