@@ -1,7 +1,9 @@
 import numpy as np
+import cv2
 
-from data import read_detections, load_annots, filter_annots, add_gauss_noise_to_bboxes
+from data import read_detections, load_annots, filter_annots, add_gauss_noise_to_bboxes, load_flow_data, process_flow_data
 
+from utils.visualize import flow_to_hsv, visualize_flow, flow_to_color
 
 def bbox_iou(bboxA, bboxB):
     # compute the intersection over union of two bboxes
@@ -28,12 +30,17 @@ def bbox_iou(bboxA, bboxB):
     return iou
 
 
-def compute_msen(predictions, gt):
-    pass
+def compute_optical_metrics(prediction, gt, thr=3):
 
+    # discard occlusions
+    occ = gt[:, :, 2] != 0
 
-def compute_pepn(predictions, gt):
-    pass
+    diff = ((gt[..., :2] - prediction[..., :2]) ** 2)[occ]
+    error = np.sqrt(diff[:, 0] + diff[:, 1])
+    msen = error.mean()
+    psen = (error > thr).sum() / error.size * 100
+
+    return msen, psen
 
 
 def compute_ap(precision, recall):
@@ -58,7 +65,6 @@ def evaluate(sorted_boxes, labels, ious):
     m_ap = np.mean([v for k, v in mAP_all_frames.items()])
     return m_ap
 
-
 if __name__ == '__main__':
     dataset_folder = 'datasets/AICity_data/train/S03/c010/'
     #gt_file = dataset_folder + 'gt/gt.txt'
@@ -79,7 +85,30 @@ if __name__ == '__main__':
     annots = filter_annots(annots, classes=classes)
 
     noisy_gt = add_gauss_noise_to_bboxes(annots, 0.2)
-    compute_msen(noisy_gt, annots)
 
-    maps = evaluate(noisy_gt, annots, ious)
+    flows = load_flow_data("datasets/results/")
+    gt = load_flow_data("datasets/results/gt/")
+    flows = process_flow_data(flows)
+    gt = process_flow_data(gt)
 
+    for flow, gt in zip(flows, gt):
+        msen, psen = compute_optical_metrics(flow, gt)
+        print(f"MSEN: {msen}")
+        print(f"PSEN: {psen}")
+
+        visualize_flow(flow, simple=True)
+        visualize_flow(gt, simple=True)
+
+        # Better for dense optical flow
+        flow_color = flow_to_color(flow[..., :2], convert_to_bgr=False)
+        flow_color_gt = flow_to_color(gt[..., :2], convert_to_bgr=False)
+
+        visualize_flow(flow_color)
+        visualize_flow(flow_color_gt, suffix="_gt")
+        cv2.waitKey(0)
+
+        hsv_flow = flow_to_hsv(flow)
+        hsv_flow_gt = flow_to_hsv(gt)
+
+        visualize_flow(hsv_flow, hsv_format=True)
+        visualize_flow(hsv_flow_gt, suffix="_gt", hsv_format=True)

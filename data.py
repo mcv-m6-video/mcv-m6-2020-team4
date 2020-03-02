@@ -1,6 +1,8 @@
 import os
+import glob
 import numpy as np
 import copy
+import cv2
 
 import pandas as pd
 import xmltodict
@@ -13,6 +15,32 @@ def read_detections(file):
     df.drop(columns=["x1", "y1", "x2", "y2", 'patata', 'patata2', 'patata3', 'patata4'], inplace=True)
 
     return df
+
+
+def load_flow_data(root):
+
+    imgs = []
+    flows = []
+    for img in sorted(glob.glob(root + "*.png")):
+        flows.append(cv2.imread(img, cv2.IMREAD_UNCHANGED).astype(np.double))
+
+    return flows
+
+
+def process_flow_data(flows):
+
+    # Taken from KITTI toolbox (flow_read.m)
+    for i, flow in enumerate(flows):
+        u_vec = (flow[:, :, 2] - 2**15) / 64
+        v_vec = (flow[:, :, 1] - 2**15) / 64
+
+        valid = flow[:, :, 0] == 1
+        u_vec[~valid] = 0
+        v_vec[~valid] = 0
+
+        flows[i] = np.dstack((u_vec, v_vec, valid))
+
+    return flows
 
 
 def load_annots(file):
