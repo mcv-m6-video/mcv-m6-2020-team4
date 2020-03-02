@@ -76,44 +76,26 @@ def read_nd_sort_gt(path):
     
     gt_bb = []
     for child in root[2:]:
-        if child.attrib['label'] == 'car':
-            for c in child:
-                lista = [int(c.attrib['frame']),
-                         int(child.attrib['id']),
-                         float(c.attrib['xtl']),
-                         float(c.attrib['ytl']),
-                         float(c.attrib['xbr']),
-                         float(c.attrib['ybr'])]
-                gt_bb.append(lista)
+        for c in child:
+            lista = [int(c.attrib['frame']),
+                     child.attrib['label'],
+                     int(child.attrib['id']),
+                     float(c.attrib['xtl']),
+                     float(c.attrib['ytl']),
+                     float(c.attrib['xbr']),
+                     float(c.attrib['ybr'])]
+            gt_bb.append(lista)
     #Sort by frames            
     gt_bb = sorted(gt_bb, key=lambda x: x[0])
     return gt_bb
 
 
-
-path = "ai_challenge_s03_c010-full_annotation.xml"
-
-gt_bb = read_nd_sort_gt(path)
-
-
-#check that all the cars in frame 0 are detected
-frame1 = cv2.imread('C:/Users/Sara/Datos/Master/M6/Week1/AICity_data/train/S03/c010/data/frame340.jpg')
-
-for i in range(0,10):
-    
-    cv2.rectangle(frame1, (int(gt_bb[i][2]), int(gt_bb[i][3])), 
-                          (int(gt_bb[i][4]), int(gt_bb[i][5])), (255,0,0), 2)
-
-font = cv2.FONT_HERSHEY_SIMPLEX
-cv2.putText(frame1,"1",(int(gt_bb[i][2]), int(gt_bb[i][3])-10), font, 0.5,(255,255,255),2,cv2.LINE_AA)
-    
-frame1 = cv2.resize(frame1, (int(1920/2),int(1080/2)))
-cv2.imshow("image", frame1)
-cv2.waitKey(0)          
-
-
-
-#%%
+def remove_bike(gt_bb):
+    gtr_bb = []
+    for i in range(0, len(gt_bb)):
+        if gt_bb[i][1] == 'car':
+            gtr_bb.append(gt_bb[i])
+    return gtr_bb
 
 
 def animation_bb(name, form, bb_cords, frame_path, fps, seconds, width, height):
@@ -157,35 +139,52 @@ def animation_bb(name, form, bb_cords, frame_path, fps, seconds, width, height):
         video.release()
     return frame1
     
-    
-    
-#width = int(1920/4)
-#height = int(1080/4)
-#FPS = 10
-#seconds = 20
-#name = 'holahola'
-#form = '.avi'
-#frame_path = "C:/Users/Sara/Datos/Master/M6/Week1/AICity_data/train/S03/c010/data/"
-#
-#
-#
-#a = animation_bb(name, form, gt_bb, frame_path, FPS, seconds, width, height)
 
 
-#%%
+def gen_random_bb(xtl_mean, ytl_mean, xbr_mean, ybr_mean):
+    sx = 1920
+    sy = 1080
     
+    w = abs(xtl_mean - xbr_mean) + float(np.random.normal(0,5,1))
+    h = abs(ytl_mean - ybr_mean) + float(np.random.normal(0,5,1))
+    
+    xc = np.random.uniform(h, sx-h, 1)
+    yc = np.random.uniform(w, sy-w, 1)
+    
+    xtl = xc - int(w/2)
+    xbr = xc + int(w/2)
+    ytl = yc - int(h/2)
+    ybr = yc + int(h/2)    
+    return [float(xtl), float(ytl), float(xbr), float(ybr)]
+
+
 def gauss_noisy_bb(gt_bb):
     """
     Function that adds noise to the image 
     WE WILL HAVE TO CHECK THE EFFECT OF CHANGING THE NOISE LEVEL
     """
+    xtl_mean = np.mean([item[-4] for item in gt_bb])
+    ytl_mean = np.mean([item[-3] for item in gt_bb])
+    xbr_mean = np.mean([item[-2] for item in gt_bb])
+    ybr_mean = np.mean([item[-1] for item in gt_bb])
+    
     np.random.seed(2373)
     noisy_bb = copy.deepcopy(gt_bb)
-                        
-    for i in range(0,len(gt_bb)):
+    #Change the 5% of the bounding boxes in the GT
+    args_to_change = np.random.randint(0, len(gt_bb), int(len(gt_bb)*0.0005))
+    for i in args_to_change:
         for j in range(0, 4):
-            noisy_bb[i][2+j] = gt_bb[i][2+j] + float(np.random.normal(0,5,1))
-    return noisy_bb
+            noisy_bb[i][3:] = gen_random_bb(xtl_mean, ytl_mean, xbr_mean, ybr_mean)
+    #Remove the 5% of the bounding boxes
+    args_to_keep = np.random.randint(0, len(noisy_bb), int(len(noisy_bb)*0.95))
+    keep_bb = []
+    for i in args_to_keep:
+        keep_bb.append(noisy_bb[i])
+    
+    for i in range(0,len(keep_bb)):
+        for j in range(0, 4):
+                keep_bb[i][2+j] = keep_bb[i][2+j] + float(np.random.normal(0,5,1))            
+    return keep_bb
     
 
 
@@ -221,15 +220,15 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, width, 
         args_gt = [i for i, num in enumerate(lst_gt) if num == f_val]
         for ar in args_gt:        
             #Ground truth bounding box in green
-            cv2.rectangle(frame1, (int(gt_bb[ar][2]), int(gt_bb[ar][3])), 
-                                  (int(gt_bb[ar][4]), int(gt_bb[ar][5])), (0,255,0), 2)
+            cv2.rectangle(frame1, (int(gt_bb[ar][3]), int(gt_bb[ar][4])), 
+                                  (int(gt_bb[ar][5]), int(gt_bb[ar][6])), (0,255,0), 2)
             
             
         args_nogt = [i for i, num in enumerate(lst_nogt) if num == f_val]
         for ar in args_nogt:        
             #guessed GT in blue
-            cv2.rectangle(frame1, (int(bb_cords[ar][2]), int(bb_cords[ar][3])), 
-                                  (int(bb_cords[ar][4]), int(bb_cords[ar][5])), (255,0,0), 2)
+            cv2.rectangle(frame1, (int(bb_cords[ar][3]), int(bb_cords[ar][4])), 
+                                  (int(bb_cords[ar][5]), int(bb_cords[ar][6])), (255,0,0), 2)
             
             if confid:
                 cv2.putText(frame1,str(bb_cords[ar][6]) + " %",
@@ -250,20 +249,7 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, width, 
     return frame1  
 
 
-width = int(1920/4)
-height = int(1080/4)
-FPS = 10
-seconds = 20
-name = 'holahola'
-form = '.avi'
-frame_path = "./AICity_data/train/S03/c010/data/"
 
-
-
-#a = animation_2bb(name, form, gt_bb, gauss_noisy_bb(gt_bb), frame_path, FPS, seconds, width, height)
-
-
-path = "./AICity_data/train/S03/c010/det/det_mask_rcnn.txt"
 def read_detection(path):
     """
     Function that reads a .txt file for the detection
@@ -282,6 +268,65 @@ def read_detection(path):
                      float(fields[6])] # confidence
         bb.append(test_list)
     return bb
+
+
+
+
+
+
+path = "ai_challenge_s03_c010-full_annotation.xml"
+
+gt_bb = read_nd_sort_gt(path)
+
+gt_bb = remove_bike(gt_bb)
+
+#check that all the cars in frame 0 are detected
+frame1 = cv2.imread('C:/Users/Sara/Datos/Master/M6/Week1/AICity_data/train/S03/c010/data/frame340.jpg')
+
+for i in range(0,10):
+    
+    cv2.rectangle(frame1, (int(gt_bb[i][2]), int(gt_bb[i][3])), 
+                          (int(gt_bb[i][4]), int(gt_bb[i][5])), (255,0,0), 2)
+
+font = cv2.FONT_HERSHEY_SIMPLEX
+cv2.putText(frame1,"1",(int(gt_bb[i][2]), int(gt_bb[i][3])-10), font, 0.5,(255,255,255),2,cv2.LINE_AA)
+    
+frame1 = cv2.resize(frame1, (int(1920/2),int(1080/2)))
+cv2.imshow("image", frame1)
+cv2.waitKey(0)          
+
+
+    
+    
+#width = int(1920/4)
+#height = int(1080/4)
+#FPS = 10
+#seconds = 20
+#name = 'holahola'
+#form = '.avi'
+#frame_path = "C:/Users/Sara/Datos/Master/M6/Week1/AICity_data/train/S03/c010/data/"
+#
+#
+#
+#a = animation_bb(name, form, gt_bb, frame_path, FPS, seconds, width, height)
+
+
+
+width = int(1920/4)
+height = int(1080/4)
+FPS = 10
+seconds = 10
+name = 'holahola'
+form = '.avi'
+frame_path = "./AICity_data/train/S03/c010/data/"
+
+
+
+a = animation_2bb(name, form, gt_bb, gauss_noisy_bb(gt_bb), frame_path, FPS, seconds, width, height)
+
+
+path = "./AICity_data/train/S03/c010/det/det_mask_rcnn.txt"
+
 
 rcnn_bb = read_detection(path)
 
