@@ -4,6 +4,9 @@ import matplotlib.animation as animation
 
 from data import load_annots, filter_annots, add_gauss_noise_to_bboxes
 from metrics import bbox_iou
+import cv2
+
+
 
 def plot_animation(x_elements, y_elements, x_label, y_label, y_label_range, frame_rate):
     """
