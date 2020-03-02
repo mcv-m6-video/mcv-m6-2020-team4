@@ -30,12 +30,13 @@ def load_annots(file):
 
         for box in image['box']:
             frame = box['@frame']
-            x1 = box["@xtl"]
-            y1 = box["@ytl"]
-            x2 = box["@xbr"]
-            y2 = box["@ybr"]
+            x1 = float(box["@xtl"])
+            y1 = float(box["@ytl"])
+            x2 = float(box["@xbr"])
+            y2 = float(box["@ybr"])
+            occluded = bool(box["@occluded"])
 
-            annot_list.append([image_id, image_label, frame, x1, y1, x2, y2])
+            annot_list.append([image_id, image_label, frame, x1, y1, x2, y2, occluded])
 
     return annot_list
 
@@ -65,7 +66,7 @@ def add_gauss_noise_to_bboxes(gt_bb, std):
     np.random.seed(2373)
     noisy_bb = copy.deepcopy(gt_bb)
 
-    for i, bb in enumerate(gt_bb):
-        for j, val in enumerate(bb):
-            noisy_bb[i][j] = float(val) + float(np.random.normal(0,std,1))
+    for k, v in gt_bb.items():
+        for i, ann in enumerate(v):
+            noisy_bb[k][i][:4] = ann[:4] + np.random.normal(0,std,1)
     return noisy_bb

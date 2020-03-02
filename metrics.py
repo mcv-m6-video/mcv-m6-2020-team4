@@ -1,6 +1,6 @@
 import numpy as np
 
-from data import read_detections, load_annots, filter_annots, add_noise_to_boxes
+from data import read_detections, load_annots, filter_annots, add_gauss_noise_to_bboxes
 
 
 def bbox_iou(bboxA, bboxB):
@@ -28,6 +28,14 @@ def bbox_iou(bboxA, bboxB):
     return iou
 
 
+def compute_msen(predictions, gt):
+    pass
+
+
+def compute_pepn(predictions, gt):
+    pass
+
+
 def compute_ap(precision, recall):
     ap = 0.0
     for t in np.arange(0.0, 1.1, 0.1):
@@ -51,8 +59,6 @@ def evaluate(sorted_boxes, labels, ious):
     return m_ap
 
 
-
-
 if __name__ == '__main__':
     dataset_folder = 'datasets/AICity_data/train/S03/c010/'
     #gt_file = dataset_folder + 'gt/gt.txt'
@@ -72,7 +78,8 @@ if __name__ == '__main__':
     annots = load_annots("datasets/ai_challenge_s03_c010-full_annotation.xml")
     annots = filter_annots(annots, classes=classes)
 
-    noisy_gt = add_noise_to_boxes(annots)
+    noisy_gt = add_gauss_noise_to_bboxes(annots, 0.2)
+    compute_msen(noisy_gt, annots)
 
     maps = evaluate(noisy_gt, annots, ious)
 
