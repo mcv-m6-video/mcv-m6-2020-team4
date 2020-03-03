@@ -78,30 +78,32 @@ def generate_noisy_annotations(gt_bb):
     noisy_bb = copy.deepcopy(gt_bb)
     lst_gt = [item[0] for item in gt_bb]
     last_frame = np.max(lst_gt)+1
-    
+
     # Remove the 5% of the bounding boxes
-#    args_to_keep = random.sample(range(0, last_frame), int(len(noisy_bb) * 100))
-#    keep_bb = []
-#    for i in args_to_keep:
-#        keep_bb.append(noisy_bb[i])
+    args_to_keep = random.sample(range(0, len(noisy_bb)), int(len(noisy_bb) * 0.99))
+    keep_bb = []
+    for i in args_to_keep:
+        keep_bb.append(noisy_bb[i])
+    '''
     keep_bb = copy.deepcopy(noisy_bb)
     # Change the 5% of the bounding boxes in the GT
-    args_to_generate = int(len(gt_bb) * 0.01)
-    
+    args_to_generate = int(len(gt_bb) * 0.2)
+
     lst_gt = [item[0] for item in gt_bb]
     last_frame = np.max(lst_gt)
-    
+
     for i in range(0,args_to_generate):
-        frame_to_insert = np.random.randint(0, last_frame)        
+        frame_to_insert = np.random.randint(0, last_frame)
         new_bb = gen_random_bb(xtl_mean, ytl_mean, xbr_mean, ybr_mean, 100)
-        
+
         keep_bb.append([frame_to_insert, 'car', 0, new_bb[0], new_bb[1], new_bb[2], new_bb[3]])
 
 #    for i in range(0, len(keep_bb)):
 #        for j in range(0, 4):
 #            keep_bb[i][3 + j] = keep_bb[i][3 + j] + float(np.random.normal(0, 5, 1))
-#    
+#
     keep_bb = sorted(keep_bb, key=lambda x: x[0], reverse=False)
+    '''
     return keep_bb
 
 
