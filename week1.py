@@ -31,10 +31,10 @@ def task1(gt_file):
     classes_to_keep = ['car']
     gt = filter_gt(gt, classes_to_keep)
 
-    noisy_gt = read_detections_file("datasets/AICity_data/train/S03/c010/gt/gt.txt")
-    noisy_gt = generate_noisy_annotations(noisy_gt)
+    #noisy_gt = read_detections_file("datasets/AICity_data/train/S03/c010/gt/gt.txt")
+    noisy_gt = generate_noisy_annotations(gt)
 
-    print("noisy gt ap: {}".format(calculate_ap(noisy_gt, gt, True)))
+    print("noisy gt ap: {}".format(calculate_ap(noisy_gt, gt, False)))
 
     preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
     print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, True)))

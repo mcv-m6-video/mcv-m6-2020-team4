@@ -1,7 +1,7 @@
 import numpy as np
 from random import shuffle
 from .iou import bbox_iou
-
+import copy
 
 
 def calc_AP(precision, recall):
@@ -52,7 +52,6 @@ def calculate_ap(det_bb, gt_bb, confidence):
 
     last_frame = np.max(lst_gt) + 1
 
-    i = 0
     AP = 0
     for f_val in range(0, last_frame):
         frame_gt_bb = [gt_bb[i] for i, num in enumerate(lst_gt) if num == f_val]
@@ -64,10 +63,20 @@ def calculate_ap(det_bb, gt_bb, confidence):
             f_det_bb = [item[:-1] for item in frame_det_bb]
             AP = AP + frame_AP(n_gt, f_det_bb, frame_gt_bb)
         else:
+            
+            #Random shuffle
             f_ap = 0
             for i in range(0, 10):
-                f_ap = f_ap + frame_AP(n_gt, shuffle(frame_det_bb), frame_gt_bb)
-
+                shuffle(frame_det_bb)
+                a = frame_AP(n_gt, copy.deepcopy(frame_det_bb), copy.deepcopy(frame_gt_bb))
+                f_ap = f_ap + a
+                
+#                print(f_ap)
             AP = AP + f_ap / 10
+            
+            #Sorted by area
+#            frame_det_bb = sorted(frame_det_bb, key=lambda x: (x[5]-x[3])*(x[5]-x[3]), reverse=True)
+#            AP = AP + frame_AP(n_gt, frame_det_bb, frame_gt_bb)
+            
     AP = AP / last_frame
     return AP
