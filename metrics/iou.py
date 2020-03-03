@@ -29,13 +29,13 @@ def bbox_iou(bboxA, bboxB):
 
 def compute_miou_list_bb(frame_det_bb, frame_gt_bb):
     miou = 0
-    correct = 0
+    n_gt = len(frame_gt_bb)
     for f_det in frame_det_bb:
 
         ious = []
 
         if len(frame_gt_bb) == 0:
-            break
+            continue
 
         for f_gt in frame_gt_bb:
             iou = bbox_iou(f_det[3:], f_gt[3:])
@@ -44,12 +44,11 @@ def compute_miou_list_bb(frame_det_bb, frame_gt_bb):
         arg_max = np.argmax(ious)
         if ious[arg_max] > 0.5:
             miou += np.max(ious)
-            correct += 1
             frame_gt_bb.pop(arg_max)
-    if correct == 0:
+    if n_gt == 0:
         return 0
     else:
-        return miou/correct
+        return miou/n_gt
     
     
     

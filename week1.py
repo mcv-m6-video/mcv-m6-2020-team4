@@ -49,8 +49,8 @@ def task1(gt_file):
         
     miou = miou/last_frame
     
-    print("noisy gt ap random: {}".format(calculate_ap(det_bb, gt, 1)))
-    print("noisy gt ap area: {}".format(calculate_ap(det_bb, gt, 2)))
+#    print("noisy gt ap random: {}".format(calculate_ap(det_bb, gt, 1)))
+#    print("noisy gt ap area: {}".format(calculate_ap(det_bb, gt, 2)))
     
     print("mIoU, ", miou)
     
