@@ -149,6 +149,7 @@ def visualize_flow(flow, suffix="", hsv_format=False, simple=False):
         mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
         mag = mag[::5, ::5]
         ang = ang[::5, ::5]
+        plt.figure()
         plt.title("Flow" + suffix)
         plt.quiver(mag * np.cos(ang), mag * np.sin(ang))
         plt.show()

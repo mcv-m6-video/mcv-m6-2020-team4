@@ -31,7 +31,6 @@ def task1(gt_file):
     classes_to_keep = ['car']
     gt = filter_gt(gt, classes_to_keep)
 
-    #noisy_gt = read_detections_file("datasets/AICity_data/train/S03/c010/gt/gt.txt")
     noisy_gt = generate_noisy_annotations(gt)
 
     print("noisy gt ap: {}".format(calculate_ap(noisy_gt, gt, False)))
@@ -71,7 +70,7 @@ def task3(image_file, gt_file):
 
 def task4(flow, gt):
     visualize_flow(flow, simple=True)
-    visualize_flow(gt, simple=True)
+    visualize_flow(gt, suffix="_gt", simple=True)
 
     # Better for dense optical flow
     flow_color = flow_to_color(flow[..., :2], convert_to_bgr=False)
