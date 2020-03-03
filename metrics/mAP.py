@@ -46,7 +46,7 @@ def frame_AP(n_gt, f_det_bb, frame_gt_bb):
     return ap
 
 
-def calculate_ap(det_bb, gt_bb, confidence):
+def calculate_ap(det_bb, gt_bb, mode):
     lst_gt = [item[0] for item in gt_bb]
     lst_det = [item[0] for item in det_bb]
 
@@ -58,11 +58,11 @@ def calculate_ap(det_bb, gt_bb, confidence):
         n_gt = len(frame_gt_bb)
         frame_det_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == f_val]
 
-        if confidence:
+        if mode==0:
             frame_det_bb = sorted(frame_det_bb, key=lambda x: x[-1], reverse=True)
             f_det_bb = [item[:-1] for item in frame_det_bb]
             AP = AP + frame_AP(n_gt, f_det_bb, frame_gt_bb)
-        else:
+        elif mode == 1:
             
             #Random shuffle
             f_ap = 0
@@ -70,13 +70,12 @@ def calculate_ap(det_bb, gt_bb, confidence):
                 shuffle(frame_det_bb)
                 a = frame_AP(n_gt, copy.deepcopy(frame_det_bb), copy.deepcopy(frame_gt_bb))
                 f_ap = f_ap + a
-                
-#                print(f_ap)
             AP = AP + f_ap / 10
             
+        else:
             #Sorted by area
-#            frame_det_bb = sorted(frame_det_bb, key=lambda x: (x[5]-x[3])*(x[5]-x[3]), reverse=True)
-#            AP = AP + frame_AP(n_gt, frame_det_bb, frame_gt_bb)
+            frame_det_bb = sorted(frame_det_bb, key=lambda x: (x[5]-x[3])*(x[5]-x[3]), reverse=True)
+            AP = AP + frame_AP(n_gt, frame_det_bb, frame_gt_bb)
             
     AP = AP / last_frame
     return AP

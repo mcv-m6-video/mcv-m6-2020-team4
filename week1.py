@@ -6,6 +6,9 @@ from metrics.mAP import calculate_ap
 from metrics.optical_flow import compute_optical_metrics
 from utils.optical_flow_visualization import visualize_flow, flow_to_color, flow_to_hsv
 from utils.visualization import animate_iou, animation_2bb, plot_animation
+import numpy as np
+
+
 
 
 def compute_map(gt, detections_file):
@@ -32,18 +35,34 @@ def task1(gt_file):
     classes_to_keep = ['car']
     gt = filter_gt(gt, classes_to_keep)
 
-    noisy_gt = generate_noisy_annotations(gt)
+    det_bb = generate_noisy_annotations(gt)
+    
+    lst_gt = [item[0] for item in gt]
+    last_frame = np.max(lst_gt)
+    
+    miou = 0
+    for f_val in range(0, last_frame):
+        frame_gt_bb = [gt[i] for i, num in enumerate(gt) if num[0] == f_val]
+        
+        frame_det_bb = [det_bb[i] for i, num in enumerate(det_bb) if num[0] == f_val]
+        miou += frame_miou(frame_det_bb, frame_gt_bb, confidence=False)
+        
+    miou = miou/last_frame
+    
+    print("noisy gt ap random: {}".format(calculate_ap(det_bb, gt, 1)))
+    print("noisy gt ap area: {}".format(calculate_ap(det_bb, gt, 2)))
+    
+    print("mIoU, ", miou)
+    
 
-    print("noisy gt ap: {}".format(calculate_ap(noisy_gt, gt, False)))
-
-    preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
-    print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, True)))
-
-    preds_ssd = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
-    print("ssd ap: {}".format(calculate_ap(preds_ssd, gt, True)))
-
-    preds_yolo = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
-    print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, True)))
+#    preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
+#    print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, True)))
+#
+#    preds_ssd = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
+#    print("ssd ap: {}".format(calculate_ap(preds_ssd, gt, True)))
+#
+#    preds_yolo = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
+#    print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, True)))
 
 
 
