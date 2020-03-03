@@ -100,9 +100,9 @@ def task3(image_file, gt_file):
     flow = process_flow_data(flow)
     gt = process_flow_data(gt)
 
-    msen, psen = compute_optical_metrics(flow, gt)
-    print("MSEN: {msen}")
-    print("PSEN: {psen}")
+    msen, psen = compute_optical_metrics(flow, gt, plot_error=True)
+    print("MSEN: {}".format(msen))
+    print("PSEN: {}".format(psen))
 
     return flow, gt
 
