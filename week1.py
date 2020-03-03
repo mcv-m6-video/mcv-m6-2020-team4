@@ -4,7 +4,7 @@ from data import read_detections_file, read_xml_gt, filter_gt, generate_noisy_an
 from metrics.mAP import calculate_ap
 from metrics.optical_flow import compute_optical_metrics
 from utils.optical_flow_visualization import visualize_flow, flow_to_color, flow_to_hsv
-from utils.visualization import animate_iou
+from utils.visualization import animate_iou, animation_2bb
 
 
 def compute_map(gt, detections_file):
@@ -14,7 +14,7 @@ def compute_map(gt, detections_file):
 
 def main():
     print("Task 1")
-    task1("datasets/ai_challenge_s03_c010-full_annotation.xml")
+    # task1("datasets/ai_challenge_s03_c010-full_annotation.xml")
     print("Task 2")
     task2()
     print("Task 3")
@@ -31,7 +31,7 @@ def task1(gt_file):
     classes_to_keep = ['car']
     gt = filter_gt(gt, classes_to_keep)
 
-    #noisy_gt = read_detections_file("datasets/AICity_data/train/S03/c010/gt/gt.txt")
+    gt_preds = read_detections_file("datasets/AICity_data/train/S03/c010/gt/gt.txt")
     noisy_gt = generate_noisy_annotations(gt)
 
     print("noisy gt ap: {}".format(calculate_ap(noisy_gt, gt, False)))
@@ -45,6 +45,9 @@ def task1(gt_file):
     preds_yolo = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
     print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, True)))
 
+    animation_2bb("file", ".avi", gt_preds, noisy_gt, "datasets/AICity_data/train/S03/c010/frames/", 10, 10,
+                  int(1920 / 4), int(1080 / 4))
+
 
 def task2():
     annots = load_annots("datasets/ai_challenge_s03_c010-full_annotation.xml")
@@ -52,7 +55,7 @@ def task2():
     classes = ['car', ]
     annots = filter_annots(annots, classes=classes)
     animation = animate_iou(annots)
-    animation.save('test.gif')
+    animation.save('test.mp4')
 
 
 def task3(image_file, gt_file):
