@@ -49,27 +49,23 @@ def compute_miou_list_bb(frame_det_bb, frame_gt_bb):
         return 0
     else:
         return miou/n_gt
-    
-    
-    
-    
+
 def frame_miou(frame_det_bb, frame_gt_bb, confidence):
-    
+
     if confidence:
         frame_det_bb = sorted(frame_det_bb, key=lambda x: x[-1], reverse=True)
         frame_det_bb = [item[:-1] for item in frame_det_bb]
         miou = compute_miou_list_bb(frame_det_bb, frame_gt_bb)
-        
+
     else:
         miou = 0
         #Random shuffle
         for i in range(0, 10):
-            shuffle(frame_det_bb)      
+            shuffle(frame_det_bb)
             miou += compute_miou_list_bb(copy.deepcopy(frame_det_bb), copy.deepcopy(frame_gt_bb))
-        miou = miou/10    
+        miou = miou/10
         #Sorted by area
 #       frame_det_bb = sorted(frame_det_bb, key=lambda x: (x[5]-x[3])*(x[5]-x[3]), reverse=True)
-#       compute_miou_list_bb(frame_det_bb, frame_gt_bb)    
-        
+#       compute_miou_list_bb(frame_det_bb, frame_gt_bb)
+
     return miou
-    

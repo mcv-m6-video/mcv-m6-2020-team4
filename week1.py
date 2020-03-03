@@ -36,33 +36,33 @@ def task1(gt_file):
     gt = filter_gt(gt, classes_to_keep)
 
     det_bb = generate_noisy_annotations(gt)
-    
+
     lst_gt = [item[0] for item in gt]
     last_frame = np.max(lst_gt)
-    
+
     miou = 0
     for f_val in range(0, last_frame):
         frame_gt_bb = [gt[i] for i, num in enumerate(gt) if num[0] == f_val]
-        
+
         frame_det_bb = [det_bb[i] for i, num in enumerate(det_bb) if num[0] == f_val]
         miou += frame_miou(frame_det_bb, frame_gt_bb, confidence=False)
-        
-    miou = miou/last_frame
-    
-#    print("noisy gt ap random: {}".format(calculate_ap(det_bb, gt, 1)))
-#    print("noisy gt ap area: {}".format(calculate_ap(det_bb, gt, 2)))
-    
-    print("mIoU, ", miou)
-    
 
-#    preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
-#    print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, True)))
-#
-#    preds_ssd = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
-#    print("ssd ap: {}".format(calculate_ap(preds_ssd, gt, True)))
-#
-#    preds_yolo = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
-#    print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, True)))
+    miou = miou/last_frame
+
+    #print("noisy gt ap random: {}".format(calculate_ap(det_bb, gt, 1)))
+    #print("noisy gt ap area: {}".format(calculate_ap(det_bb, gt, 2)))
+
+    #print("mIoU, ", miou)
+
+
+    preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
+    print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, True)))
+
+    preds_ssd = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
+    print("ssd ap: {}".format(calculate_ap(preds_ssd, gt, True)))
+
+    preds_yolo = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
+    print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, True)))
 
 
 
@@ -71,26 +71,26 @@ def task2(gt_file, ini_frame):
     gt_bb = read_xml_gt(gt_file)
     classes_to_keep = ['car']
     gt_bb = filter_gt(gt_bb, classes_to_keep)
-    
+
     det_bb = generate_noisy_annotations(gt_bb)
-    
+
     fps = 10
     seconds = 30
     animation_2bb("file", ".avi", gt_bb, det_bb, "datasets/AICity_data/train/S03/c010/data/", fps, seconds,
               ini_frame, int(1920 / 4), int(1080 / 4))
-    
+
     mious = []
     for f_val in range(ini_frame, ini_frame+int(seconds*fps)):
         frame_gt_bb = [gt_bb[i] for i, num in enumerate(gt_bb) if num[0] == f_val]
-        
+
         frame_det_bb = [det_bb[i] for i, num in enumerate(det_bb) if num[0] == f_val]
         mious.append(frame_miou(frame_det_bb, frame_gt_bb, confidence=False))
-        
-    
+
+
     frames = list(range(0, len(mious)))
     ani = plot_animation(frames, mious, 'Frame', 'mIoU', [0,1], fps)
     ani.save('test.gif')
-    
+
 
 
 def task3(image_file, gt_file):
@@ -101,8 +101,8 @@ def task3(image_file, gt_file):
     gt = process_flow_data(gt)
 
     msen, psen = compute_optical_metrics(flow, gt)
-    print(f"MSEN: {msen}")
-    print(f"PSEN: {psen}")
+    print("MSEN: {msen}")
+    print("PSEN: {psen}")
 
     return flow, gt
 
