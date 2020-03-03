@@ -31,6 +31,7 @@ def update_plot_animation(num, x, y, line):
     line.set_data(x[:num], y[:num])
     return line,
 
+    
 
 def animate_iou(dict_frame_gt_bb):
     """
@@ -52,7 +53,7 @@ def animate_iou(dict_frame_gt_bb):
     return animation
 
 
-def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, width, height):
+def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, ini, width, height):
     """
     This function records a video of some frames with both the GT (green)
     and detection (blue) bounding boxes. If we have a confidence value that number
@@ -72,14 +73,14 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, width, 
 
     fourcc = cv2.VideoWriter_fourcc(*'MP42')
     video = cv2.VideoWriter('./' + name + form, fourcc, float(fps), (width, height))
-    ini = 390
+    
     lst_gt = [item[0] for item in gt_bb]
     lst_nogt = [item[0] for item in bb_cords]
     images = []
 
     for i in range(fps * seconds):
         f_val = i + ini
-        frame1 = cv2.imread((frame_path + 'frame_{:04d}.jpeg').format(f_val))
+        frame1 = cv2.imread((frame_path + 'frame{}.jpg').format(f_val))
 
         args_gt = [i for i, num in enumerate(lst_gt) if num == f_val]
         for ar in args_gt:
