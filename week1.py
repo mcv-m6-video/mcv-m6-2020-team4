@@ -49,20 +49,20 @@ def task1(gt_file):
 
     miou = miou/last_frame
 
-    print("noisy gt ap random: {}".format(calculate_ap(det_bb, gt, 1)))
-    print("noisy gt ap area: {}".format(calculate_ap(det_bb, gt, 2)))
+    #print("noisy gt ap random: {}".format(calculate_ap(det_bb, gt, 1)))
+    #print("noisy gt ap area: {}".format(calculate_ap(det_bb, gt, 2)))
 
-    print("mIoU, ", miou)
+    #print("mIoU, ", miou)
 
 
-#    preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
-#    print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, True)))
-#
-#    preds_ssd = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
-#    print("ssd ap: {}".format(calculate_ap(preds_ssd, gt, True)))
-#
-#    preds_yolo = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
-#    print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, True)))
+    preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
+    print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, True)))
+
+    preds_ssd = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
+    print("ssd ap: {}".format(calculate_ap(preds_ssd, gt, True)))
+
+    preds_yolo = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
+    print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, True)))
 
 
 

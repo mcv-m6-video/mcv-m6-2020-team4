@@ -85,8 +85,10 @@ def generate_noisy_annotations(gt_bb):
     for i in args_to_keep:
         keep_bb.append(noisy_bb[i])
     '''
+    keep_bb = []
     keep_bb = copy.deepcopy(noisy_bb)
     # Change the 5% of the bounding boxes in the GT
+
     args_to_generate = int(len(gt_bb) * 0.2)
 
     lst_gt = [item[0] for item in gt_bb]
@@ -98,10 +100,10 @@ def generate_noisy_annotations(gt_bb):
 
         keep_bb.append([frame_to_insert, 'car', 0, new_bb[0], new_bb[1], new_bb[2], new_bb[3]])
 
-#    for i in range(0, len(keep_bb)):
-#        for j in range(0, 4):
-#            keep_bb[i][3 + j] = keep_bb[i][3 + j] + float(np.random.normal(0, 5, 1))
-#
+    for i in range(0, len(keep_bb)):
+        for j in range(0, 4):
+            keep_bb[i][3 + j] = keep_bb[i][3 + j] + float(np.random.normal(0, 30, 1))
+
     keep_bb = sorted(keep_bb, key=lambda x: x[0], reverse=False)
     '''
     return keep_bb
