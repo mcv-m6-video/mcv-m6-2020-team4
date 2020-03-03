@@ -9,18 +9,11 @@ from utils.visualization import animate_iou, animation_2bb, plot_animation
 import numpy as np
 
 
-
-
-def compute_map(gt, detections_file):
-    det_bb = read_detections_file(detections_file)
-    return calculate_ap(det_bb, gt, confidence=True)
-
-
 def main():
     print("Task 1")
     task1("datasets/ai_challenge_s03_c010-full_annotation.xml")
-    print("Task 2")
-    task2("datasets/ai_challenge_s03_c010-full_annotation.xml", 390)
+    # print("Task 2")
+    # task2("datasets/ai_challenge_s03_c010-full_annotation.xml", 390)
     print("Task 3")
     flow1, gt1 = task3("datasets/results/LKflow_000045_10.png", "datasets/results/gt/000045_10.png")
     flow2, gt2 = task3("datasets/results/LKflow_000157_10.png", "datasets/results/gt/000157_10.png")
@@ -49,22 +42,16 @@ def task1(gt_file):
 
     miou = miou/last_frame
 
-    #print("noisy gt ap random: {}".format(calculate_ap(det_bb, gt, 1)))
-    #print("noisy gt ap area: {}".format(calculate_ap(det_bb, gt, 2)))
-
-    #print("mIoU, ", miou)
 
 
     preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
-    print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, True)))
+    print("maskrcnn ap: {}".format(calculate_ap(preds_mask, gt, 'sort')))
 
     preds_ssd = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
-    print("ssd ap: {}".format(calculate_ap(preds_ssd, gt, True)))
+    print("ssd ap: {}".format(calculate_ap(preds_ssd, gt, 'sort')))
 
     preds_yolo = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
-    print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, True)))
-
-
+    print("yolo ap: {}".format(calculate_ap(preds_yolo, gt, 'sort')))
 
 
 def task2(gt_file, ini_frame):

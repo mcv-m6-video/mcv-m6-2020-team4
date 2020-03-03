@@ -26,7 +26,7 @@ def frame_AP(n_gt, f_det_bb, frame_gt_bb):
         correct = False
 
         if len(frame_gt_bb) == 0:
-            continue
+            break
 
         for f_gt in frame_gt_bb:
             iou = bbox_iou(f_det[3:], f_gt[3:])
@@ -58,11 +58,11 @@ def calculate_ap(det_bb, gt_bb, mode):
         n_gt = len(frame_gt_bb)
         frame_det_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == f_val]
 
-        if mode==0:
+        if mode == 'sort':
             frame_det_bb = sorted(frame_det_bb, key=lambda x: x[-1], reverse=True)
             f_det_bb = [item[:-1] for item in frame_det_bb]
             AP = AP + frame_AP(n_gt, f_det_bb, frame_gt_bb)
-        elif mode == 1:
+        elif mode == 'random':
             
             #Random shuffle
             f_ap = 0
