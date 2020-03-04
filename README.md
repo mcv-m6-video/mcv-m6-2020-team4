@@ -8,7 +8,6 @@
 
 
 ## Usage 💻
-Mini-project:
 ```
 python3 week{i}.py
 ```
@@ -29,6 +28,5 @@ python3 week{i}.py
 * [x] Task 3: Optical flow evaluation metrics.
 * [x] Task 4: Visual representation optical flow.
 
+Slides: https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing
 
-
-Slides: 
