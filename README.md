@@ -6,6 +6,14 @@
 - [Yael Tudela](https://github.com/yaeltudela) - yaeltudelabarroso@gmail.com
 - [Diego Alejandro Velázquez](https://github.com/dvd42) - diegovd0296@gmail.com
 
+
+## Usage 💻
+Mini-project:
+```
+python3 week{i}.py
+```
+
+
 ### Week1 
 * [x] Task 1: Detection metrics.
 
@@ -14,8 +22,10 @@
 | 0.447         | 0.382         | 0.435 |
 
 
-
 * [x] Task 2: Detection metrics. Temporal analysis.
+
+![grab-landing-page](https://github.com/winnie1312/grab/blob/master/grab-landingpage-winnie.gif)
+
 * [x] Task 3: Optical flow evaluation metrics.
 * [x] Task 4: Visual representation optical flow.
 
