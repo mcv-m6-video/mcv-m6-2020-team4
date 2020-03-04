@@ -181,16 +181,16 @@ def visualize_flow_v2(image_path, of_image_path):
     plt.quiver(y, x, (u-np.mean(u)).T, -(v - np.mean(v)).T, color = 'red')
     plt.show()
     
-of_image_path = 'datasets/results/gt/000045_10.png'
-image_path = '000045_10.png'
-
-of_image_path = 'datasets/results/LKflow_000045_10.png'
-image_path = '000045_10.png'
-
-
-of_image_path = 'datasets/results/gt/000157_10.png'
-image_path = '000157_10.png'
-
-of_image_path = 'datasets/results/LKflow_000157_10.png'
-image_path = '000157_10.png'
+#of_image_path = 'datasets/results/gt/000045_10.png'
+#image_path = '000045_10.png'
+#
+#of_image_path = 'datasets/results/LKflow_000045_10.png'
+#image_path = '000045_10.png'
+#
+#
+#of_image_path = 'datasets/results/gt/000157_10.png'
+#image_path = '000157_10.png'
+#
+#of_image_path = 'datasets/results/LKflow_000157_10.png'
+#image_path = '000157_10.png'
 
