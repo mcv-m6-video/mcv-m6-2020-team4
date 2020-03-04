@@ -16,6 +16,8 @@ python3 week{i}.py
 ### Week1 
 * [x] Task 1: Detection metrics.
 
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/frame_guai.png)
+
 | Mask RCNN     | SSD512        | Yolo3 |
 | ------------- |:-------------:| -----:|
 | 0.447         | 0.382         | 0.435 |
