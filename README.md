@@ -25,7 +25,7 @@ python3 week{i}.py
 
 * [x] Task 2: Detection metrics. Temporal analysis.
 
-![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/tree/master/Results/Week1/iou_noisy.gif)
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week1/iou_noisy.gif)
 
 * [x] Task 3: Optical flow evaluation metrics.
 
