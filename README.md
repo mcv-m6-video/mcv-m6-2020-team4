@@ -14,6 +14,7 @@ python3 week{i}.py
 
 
 ### Week1 
+[Slides week1](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)
 * [x] Task 1: Detection metrics.
 
 ![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/frame_guai.png)
@@ -43,5 +44,5 @@ python3 week{i}.py
 
 ![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week1/OF.PNG)
 
-Slides: https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing
+
 
