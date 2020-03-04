@@ -8,9 +8,11 @@
 
 ### Week1 
 * [x] Task 1: Detection metrics.
-| Mask RCNN   |      SSD512      |  Yolo3 |
-|-------------|:----------------:|-------:|
-|    0.447    |       0.382      |  0.435 |
+
+| Mask RCNN     | SSD512        | Yolo3 |
+| ------------- |:-------------:| -----:|
+| 0.447         | 0.382         | 0.435 |
+
 
 
 * [x] Task 2: Detection metrics. Temporal analysis.
