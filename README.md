@@ -8,7 +8,6 @@
 
 
 ## Usage 💻
-Mini-project:
 ```
 python3 week{i}.py
 ```
@@ -17,6 +16,8 @@ python3 week{i}.py
 ### Week1 
 * [x] Task 1: Detection metrics.
 
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/frame_guai.png)
+
 | Mask RCNN     | SSD512        | Yolo3 |
 | ------------- |:-------------:| -----:|
 | 0.447         | 0.382         | 0.435 |
@@ -24,11 +25,21 @@ python3 week{i}.py
 
 * [x] Task 2: Detection metrics. Temporal analysis.
 
-![grab-landing-page](https://github.com/winnie1312/grab/blob/master/grab-landingpage-winnie.gif)
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week1/iou_noisy.gif)
 
 * [x] Task 3: Optical flow evaluation metrics.
+
+**MSEN**
+| Seq 45        | Seq 157      | 
+| ------------- | ------------ |
+| 10.627        | 2.750        | 
+
+**PEPN**
+|Seq 45        | Seq 157 |
+|:------------:| -------:|
+|78.560        | 34.047  |
+
 * [x] Task 4: Visual representation optical flow.
 
+Slides: https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing
 
-
-Slides: 
