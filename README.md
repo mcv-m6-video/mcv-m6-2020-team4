@@ -23,7 +23,7 @@ python3 week{i}.py
 
 * [x] Task 2: Detection metrics. Temporal analysis.
 
-![grab-landing-page](https://github.com/winnie1312/grab/blob/master/grab-landingpage-winnie.gif)
+![Noisy](https://github.com/mcv-m6-video/mcv-m6-2020-team4/tree/master/Results/Week1/bb_frames_noisy.gif)
 
 * [x] Task 3: Optical flow evaluation metrics.
 * [x] Task 4: Visual representation optical flow.
