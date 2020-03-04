@@ -27,12 +27,12 @@ python3 week{i}.py
 
 * [x] Task 3: Optical flow evaluation metrics.
 
-MSEN
+**MSEN**
 | Seq 45        | Seq 157      | 
 | ------------- | ------------ |
 | 10.627        | 2.750        | 
 
-
+**PEPN**
 |Seq 45        | Seq 157 |
 |:------------:| -------:|
 |78.560        | 34.047  |
