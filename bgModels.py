@@ -15,20 +15,23 @@ def bg_model_grayscale(video_path, frames_path):
     p25_frames = int(video_n_frames*0.25)
     img = cv2.imread(frames_path+'/frame_0000.jpg',0)
     imga = np.zeros((p25_frames, np.shape(img)[0], np.shape(img)[1])).astype(np.float16())
+    print('Reading frames ')
     for i in range(0, p25_frames):
-        print(i)
         #in openCV imread(path,0) the 0 is already grayscale!
         imga[i,...] =  cv2.imread(frames_path+('/frame_{:04d}.jpg'.format(i)),0).astype(np.float16())
         
     # mean
+    print('Calculating mean .... (takes a while)')
     mu = np.mean(imga, axis = 0, dtype = np.float64)         
     # variance
+    print('Calculating variance .... (takes a while)')
     sigma = np.std(imga, axis = 0, dtype = np.float64)    
     
+    print('End')
     return mu, sigma
 
     
-def remove_bg(mu, sigma, alpha, initial_frame, final_frame, animation = False):
+def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame, animation = False):
     """
     Save detected bb in the same format as GT which is:
         'frame', 'label', 'id', 'xtl','ytl','xbr','ybr'
