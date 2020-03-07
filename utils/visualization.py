@@ -80,7 +80,7 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, ini, wi
 
     for i in range(fps * seconds):
         f_val = i + ini
-        frame1 = cv2.imread((frame_path + 'frame{}.jpg').format(f_val))
+        frame1 = cv2.imread((frame_path + '/frame_{:04d}.jpg').format(f_val))
 
         args_gt = [i for i, num in enumerate(lst_gt) if num == f_val]
         for ar in args_gt:
@@ -106,10 +106,12 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, ini, wi
         else:
             video.write(frame1)
 
-    if form == 'gif':
-        imageio.mimsave('./' + name + form, images)
+    if form == '.gif':
+        imageio.mimsave(name + form, images)
     else:
         video.release()
+
+
 
 
 if __name__ == '__main__':

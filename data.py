@@ -81,16 +81,16 @@ def generate_noisy_annotations(gt_bb):
 
     # Remove the 5% of the bounding boxes
 
-    args_to_keep = random.sample(range(0, len(noisy_bb)), int(len(noisy_bb) * 0.99))
+    args_to_keep = random.sample(range(0, len(noisy_bb)), int(len(noisy_bb) * 0.90))
     keep_bb = []
     for i in args_to_keep:
         keep_bb.append(noisy_bb[i])
-    '''
-    keep_bb = []
-    keep_bb = copy.deepcopy(noisy_bb)
+    
+#    keep_bb = []
+#    keep_bb = copy.deepcopy(noisy_bb)
     # Change the 5% of the bounding boxes in the GT
 
-    args_to_generate = int(len(gt_bb) * 0.2)
+    args_to_generate = int(len(gt_bb) * 0.1)
 
     lst_gt = [item[0] for item in gt_bb]
     last_frame = np.max(lst_gt)
@@ -102,10 +102,10 @@ def generate_noisy_annotations(gt_bb):
 
     for i in range(0, len(keep_bb)):
         for j in range(0, 4):
-            keep_bb[i][3 + j] = keep_bb[i][3 + j] + float(np.random.normal(0, 5, 1))
+            keep_bb[i][3 + j] = keep_bb[i][3 + j] + float(np.random.normal(0, 10, 1))
  
     keep_bb = sorted(keep_bb, key=lambda x: x[0], reverse=False)
-    '''
+    
     return keep_bb
 
 
@@ -182,3 +182,51 @@ def read_detections_file(path):
                      float(fields[6])]  # confidence
         bb.append(test_list)
     return bb
+
+def FrameCapture(path,directory): 
+    """
+    To reconstruct the video with the bounding boxes we need to extract the frames
+    and save them somewhere
+    """
+    # Path to video file 
+    vidObj = cv2.VideoCapture(path + "/vdo.avi") 
+  
+    # Used as counter variable 
+    count = 0
+  
+    # checks whether frames were extracted 
+    success = 1
+    if os.path.isfile(directory + "/frame_0000.jpg"):
+        pass
+    else:
+        while success: 
+      
+            # vidObj object calls read 
+            # function extract frames 
+            success, image = vidObj.read() 
+      
+            # Saves the frames with frame-count 
+            cv2.imwrite(directory + "/frame_{:04d}.jpg".format(count), image) 
+      
+            count += 1
+            print('frame saved: ', count)
+
+def save_frames(path):
+    """
+    This will automatically create a floder containing the frames of the video
+    If it already exists then it won't save the frames again.
+    """
+    directory = path + '/data'
+    if not os.path.exists(directory):
+        os.makedirs(directory)        
+    FrameCapture(path, directory)
+    
+   
+def number_of_frames(video_path):
+    """
+    Comutes how many frames a video has
+    """
+    cap = cv2.VideoCapture(video_path)
+    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    return length
+
