@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 from data import number_of_frames
-
+import imageio
 
 
 def bg_model_grayscale(video_path, frames_path):
@@ -31,7 +31,8 @@ def bg_model_grayscale(video_path, frames_path):
     return mu, sigma
 
     
-def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame, animation = False):
+def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame, 
+              animation = False, denoise = False):
     """
     Save detected bb in the same format as GT which is:
         'frame', 'label', 'id', 'xtl','ytl','xbr','ybr'
@@ -43,16 +44,19 @@ def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame, animati
         img = cv2.imread(frames_path+('/frame_{:04d}.jpg'.format(i)),0).astype(np.float64())
         
         if i == initial_frame and animation:
-            frames = np.zeros((final_frame-initial_frame, np.shape(img)[0], np.shape(img)[1])).astype(np.uint8())
+            sx, sy = np.int(np.shape(img)[0]/4), np.int(np.shape(img)[1]/4)
+            frames = np.zeros((final_frame-initial_frame, sx, sy)).astype(np.uint8())
             
         frame = np.zeros(np.shape(img)).astype(np.uint8())
         frame[np.abs(img-mu)>= alpha*(sigma+2)] = 255
         frame[np.abs(img-mu)< alpha*(sigma+2)] = 0
         if animation:
-            frames[c,...] = frame
+            frames[c,...] = cv2.resize(frame, (sy,sx))
+
+        if denoise:            
+            frame = cv2.medianBlur(frame,5)
             
-        clean_frame = cv2.medianBlur(frame,5)
-        (_,contours,_) = cv2.findContours(clean_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        (_,contours,_) = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         
         for contour in contours:
             # Open cv documentation:  (x,y) be the top-left coordinate

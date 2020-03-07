@@ -46,14 +46,12 @@ def frame_AP(n_gt, f_det_bb, frame_gt_bb):
     return ap
 
 
-def calculate_ap(det_bb, gt_bb, mode):
+def calculate_ap(det_bb, gt_bb, ini_frame, last_frame, mode):
     lst_gt = [item[0] for item in gt_bb]
     lst_det = [item[0] for item in det_bb]
 
-    last_frame = np.max(lst_gt) + 1
-
     AP = 0
-    for f_val in range(0, last_frame):
+    for f_val in range(ini_frame, last_frame):
         frame_gt_bb = [gt_bb[i] for i, num in enumerate(lst_gt) if num == f_val]
         n_gt = len(frame_gt_bb)
         frame_det_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == f_val]
