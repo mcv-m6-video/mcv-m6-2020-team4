@@ -45,4 +45,11 @@ python3 week{i}.py
 ![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week1/OF.PNG)
 
 
-
+### Week2
+[Slides week2]()
+* [x] Task 1.1: Gaussian. Implementation
+* [x] Task 1.2: Gaussian. Discussion
+* [x] Task 2.1: Adaptive modeling 
+* [x] Task 2.2: Adaptive vs non-adaptive models
+* [x] Task 3: Comparison with the state of the art
+* [x] Task 4: Color sequences
