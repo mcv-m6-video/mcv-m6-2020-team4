@@ -155,6 +155,31 @@ def read_xml_gt(path):
     gt_bb = sorted(gt_bb, key=lambda x: x[0])
     return gt_bb
 
+def read_xml_gt_options(path, remove_occluded, remove_parked):
+    """
+    Reads the .xml file for the GT removing or not occulded and parked instances
+    and sorts the detections by frames
+    """
+    root = ET.parse(path).getroot()
+
+    gt_bb = []
+    for child in root[2:]:
+        for c in child:
+            if remove_occluded and c.attrib["occluded"]==1:
+                continue
+            if remove_parked and child.attrib['label'] == "car" and c[0].text == "true":
+                continue
+            lista = [int(c.attrib['frame']),
+                     child.attrib['label'],
+                     int(child.attrib['id']),
+                     float(c.attrib['xtl']),
+                     float(c.attrib['ytl']),
+                     float(c.attrib['xbr']),
+                     float(c.attrib['ybr'])]
+            gt_bb.append(lista)
+    # Sort by frames
+    gt_bb = sorted(gt_bb, key=lambda x: x[0])
+    return gt_bb
 
 def filter_gt(gt_bb, classes_to_keep):
     gtr_bb = []
