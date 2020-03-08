@@ -22,7 +22,7 @@ def task1():
     print("Finished saving")
 
     frames_path = 'datasets/AICity_data/train/S03/c010/data'
-
+    video_n_frames = number_of_images_jpg(frames_path)
 
     #this is very time consuming, we should avoid comuting it more than once.
     mu, sigma = bg_model_grayscale(frames_path)
@@ -40,41 +40,32 @@ def task1():
     plt.legend()
 
 
-alphas = [1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10]
-aps7 = []
-
-#Test for different alpha values
-for a in alphas:    
-    det_bb = remove_bg(mu, sigma, a, frames_path, 0, video_n_frames, 
-                           animation = False, denoise = True)
+    alphas = [1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10]
+    aps7 = []
     
-    gt_bb = read_xml_gt("datasets/ai_challenge_s03_c010-full_annotation.xml")
-    
-    
-    ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
-    print(a,ap)
-    aps7.append(ap)
-
-#
-#
-animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1, 
-              int(1920 / 4), int(1080 / 4))
-
-
-        det_bb = remove_bg(mu, sigma, 3, frames_path, 0, video_n_frames,
-                               animation = False)
-
+    #Test for different alpha values
+    for a in alphas:    
+        det_bb = remove_bg(mu, sigma, a, frames_path, 0, video_n_frames, 
+                               animation = False, denoise = True)
+        
         gt_bb = read_xml_gt("datasets/ai_challenge_s03_c010-full_annotation.xml")
-
-
+        
+        
         ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
         print(a,ap)
-        aps.append(ap)
+        aps7.append(ap)
+    
+    #
+    #
+    animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1, 
+                  int(1920 / 4), int(1080 / 4))
 
-    #
-    #
-    #animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1,
-    #              int(1920 / 4), int(1080 / 4))
+#
+#
+#animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1,
+#              int(1920 / 4), int(1080 / 4))
+
+
 
 def task2(frames_path, gt_path):
     #mu, sigma = bg_model_grayscale(frames_path)
