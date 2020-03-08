@@ -42,7 +42,7 @@ def task1(gt_path):
 
     alphas = [1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7]
     aps7 = []
-    
+
     #Test for different alpha values
     for a in alphas:    
         det_bb = remove_bg(mu, sigma, a, frames_path, int(video_n_frames*0.25), video_n_frames, 
@@ -50,14 +50,14 @@ def task1(gt_path):
         
         gt_bb = read_xml_gt_options(gt_path, True, True)
         
-        
+
         ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
         print(a,ap)
         aps7.append(ap)
-    
+
     #
     #
-    animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1, 
+    animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1,
                   int(1920 / 4), int(1080 / 4))
 
 #
@@ -81,12 +81,12 @@ def task2(frames_path, gt_path):
     video_n_frames = number_of_images_jpg(frames_path)
 
     mAPs = []
-    alphas = [1.75]
-    rhos = [0.3981]
+    alphas = [2.5]
+    rhos = [0.1]
 
     for alpha in alphas:
         for rho in rhos:
-            det_bb = remove_adaptive_bg(mu, sigma, alpha, rho, frames_path, int(video_n_frames*0.25), 700)
+            det_bb = remove_adaptive_bg(mu, sigma, alpha, rho, frames_path, int(video_n_frames*0.25), video_n_frames)
             mAP = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
             mAPs.append(mAP)
             print("Alpha: {:2f} | Rho: {:2f} | mAP: {:2f} |".format(alpha, rho, mAP))

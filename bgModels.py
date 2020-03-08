@@ -55,9 +55,9 @@ def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame,
         if animation:
             frames[c,...] = cv2.resize(frame, (sy,sx))
 
-        if denoise:            
+        if denoise:
             frame = cv2.medianBlur(frame,7)
-            
+
         (_,contours,_) = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         for contour in contours:
@@ -72,8 +72,8 @@ def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame,
 
     return detected_bb
 
-def remove_adaptive_bg(mu_original, sigma_original, alpha, rho, frames_path, initial_frame, final_frame,
-              animation = False, denoise = False):
+def remove_adaptive_bg(mu_original, sigma_original, alpha, rho, frames_path,
+            initial_frame, final_frame, animation = False, denoise = False):
     """
     Save detected bb in the same format as GT which is:
         'frame', 'label', 'id', 'xtl','ytl','xbr','ybr'
@@ -92,20 +92,17 @@ def remove_adaptive_bg(mu_original, sigma_original, alpha, rho, frames_path, ini
 
         frame = np.zeros(np.shape(img)).astype(np.uint8())
         frame[np.abs(img-mu)>= alpha*(sigma+2)] = 255
+        frame[np.abs(img-mu)< alpha*(sigma+2)] = 0
 
         #Update mu and sigma if needed
-        #mu[frame == 0] = rho * img[frame == 0] + (1 - rho) * mu[frame == 0]
-        #sigma[frame == 0] = np.sqrt(rho * np.power((img[frame == 0] - mu[frame == 0]), 2) + (1 - rho) * np.power(sigma[frame == 0], 2))
-        for i, elem1 in enumerate(frame):
-            for j, elem2 in enumerate(elem1):
-                if j==0:
-                    mu[i][j] = rho * img[i][j] + (1 - rho) * mu[i][j]
-                    sigma[i][j] = np.sqrt(rho * np.power((img[i][j] - mu[i][j]), 2) + (1 - rho) * np.power(sigma[i][j], 2))
+        mu[frame == 0] = rho * img[frame == 0] + (1 - rho) * mu[frame == 0]
+        sigma[frame == 0] = np.sqrt(rho * np.power((img[frame == 0] - mu[frame == 0]), 2) + (1 - rho) * np.power(sigma[frame == 0], 2))
+
         if animation:
             frames[c,...] = cv2.resize(frame, (sy,sx))
 
         if denoise:
-            frame = cv2.medianBlur(frame,5)
+            frame = cv2.medianBlur(frame,7)
 
         (_,contours,_) = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
