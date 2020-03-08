@@ -1,17 +1,17 @@
 import numpy as np
 import matplotlib.pylab as plt
 
-from data import read_xml_gt, FrameCapture
-from data import save_frames, number_of_images_jpg
+from data import read_xml_gt, FrameCapture, read_xml_gt_options
+from data import save_frames, number_of_images_jpg, filter_gt
 from utils.visualization import animate_iou, animation_2bb, plot_animation
-from bgModels import bg_model_grayscale, remove_bg
+from bgModels import bg_model_grayscale, remove_bg, remove_adaptive_bg
 from metrics.mAP import calculate_ap
 
 def main():
     print("Task 1")
-    task1()
+    #task1()
     print("Task 2")
-    task2('datasets/AICity_data/train/S03/c010/data')
+    task2('datasets/AICity_data/train/S03/c010/data', "datasets/ai_challenge_s03_c010-full_annotation.xml")
     print("Task 3")
 
     print("Task 4")
@@ -64,7 +64,29 @@ def task1():
     #animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1,
     #              int(1920 / 4), int(1080 / 4))
 
-def task2(frames_path):
-    pass
+def task2(frames_path, gt_path):
+    #mu, sigma = bg_model_grayscale(frames_path)
+    #np.savetxt("mu.csv", mu, delimiter=",")
+    #np.savetxt("sigma.csv", sigma, delimiter=",")
+    gt_bb = read_xml_gt_options(gt_path, True, True)
+
+    classes_to_keep = ['car', 'bike']
+    gt_bb = filter_gt(gt_bb, classes_to_keep)
+
+    mu = np.genfromtxt("mu.csv", delimiter=',')
+    sigma = np.genfromtxt("sigma.csv", delimiter=',')
+    video_n_frames = number_of_images_jpg(frames_path)
+
+    mAPs = []
+    alphas = [1.75]
+    rhos = [0.3981]
+
+    for alpha in alphas:
+        for rho in rhos:
+            det_bb = remove_adaptive_bg(mu, sigma, alpha, rho, frames_path, int(video_n_frames*0.25), 700)
+            mAP = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
+            mAPs.append(mAP)
+            print("Alpha: {:2f} | Rho: {:2f} | mAP: {:2f} |".format(alpha, rho, mAP))
+
 if __name__ == '__main__':
     main()
