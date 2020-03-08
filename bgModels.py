@@ -54,7 +54,7 @@ def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame,
             frames[c,...] = cv2.resize(frame, (sy,sx))
 
         if denoise:            
-            frame = cv2.medianBlur(frame,5)
+            frame = cv2.medianBlur(frame,7)
             
         (_,contours,_) = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         

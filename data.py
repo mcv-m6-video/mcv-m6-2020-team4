@@ -155,6 +155,7 @@ def read_xml_gt(path):
     return gt_bb
 
 
+
 def filter_gt(gt_bb, classes_to_keep):
     gtr_bb = []
     for i in range(0, len(gt_bb)):
