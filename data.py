@@ -219,7 +219,7 @@ def FrameCapture(path,directory):
     vidObj = cv2.VideoCapture(path + "/vdo.avi")
 
     # Used as counter variable
-    count = 0
+    count = 1
 
     # checks whether frames were extracted
     success = 1

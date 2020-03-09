@@ -10,14 +10,14 @@ from metrics.mAP import calculate_ap
 
 def main():
     print("Task 1")
-    #task1()
+    task1("datasets/ai_challenge_s03_c010-full_annotation.xml")
     print("Task 2")
     task2('datasets/AICity_data/train/S03/c010/data', "datasets/ai_challenge_s03_c010-full_annotation.xml")
     print("Task 3")
 
     print("Task 4")
 
-def task1():
+def task1(gt_path):
     path = 'datasets/AICity_data/train/S03/c010'
     save_frames(path)
     print("Finished saving")
@@ -41,16 +41,16 @@ def task1():
     plt.legend()
 
 
-    alphas = [1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,8.5,9,9.5,10]
+    alphas = [1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7]
     aps7 = []
 
     #Test for different alpha values
-    for a in alphas:
-        det_bb = remove_bg(mu, sigma, a, frames_path, 0, video_n_frames,
+    for a in alphas:    
+        det_bb = remove_bg(mu, sigma, a, frames_path, int(video_n_frames*0.25), video_n_frames, 
                                animation = False, denoise = True)
-
-        gt_bb = read_xml_gt("datasets/ai_challenge_s03_c010-full_annotation.xml")
-
+        
+        gt_bb = read_xml_gt_options(gt_path, True, True)
+        
 
         ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
         print(a,ap)
