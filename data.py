@@ -1,13 +1,12 @@
 import copy
-import os
-import xml.etree.ElementTree as ET
 import glob
+import os
+import random
+import xml.etree.ElementTree as ET
 
 import cv2
 import numpy as np
 import xmltodict
-
-import random
 
 
 def load_flow_data(image_file):
@@ -78,7 +77,7 @@ def generate_noisy_annotations(gt_bb):
     np.random.seed(2373)
     noisy_bb = copy.deepcopy(gt_bb)
     lst_gt = [item[0] for item in gt_bb]
-    last_frame = np.max(lst_gt)+1
+    last_frame = np.max(lst_gt) + 1
 
     # Remove the 5% of the bounding boxes
 
@@ -87,8 +86,8 @@ def generate_noisy_annotations(gt_bb):
     for i in args_to_keep:
         keep_bb.append(noisy_bb[i])
 
-#    keep_bb = []
-#    keep_bb = copy.deepcopy(noisy_bb)
+    #    keep_bb = []
+    #    keep_bb = copy.deepcopy(noisy_bb)
     # Change the 5% of the bounding boxes in the GT
 
     args_to_generate = int(len(gt_bb) * 0.1)
@@ -96,10 +95,11 @@ def generate_noisy_annotations(gt_bb):
     lst_gt = [item[0] for item in gt_bb]
     last_frame = np.max(lst_gt)
 
-    for i in range(0,args_to_generate):
+    for i in range(0, args_to_generate):
         frame_to_insert = np.random.randint(0, last_frame)
         new_bb = gen_random_bb(xtl_mean, ytl_mean, xbr_mean, ybr_mean, 100)
-        keep_bb.append([frame_to_insert, 'car', 0, new_bb[0], new_bb[1], new_bb[2], new_bb[3]])
+        keep_bb.append([frame_to_insert, 'car', 0, new_bb[0],
+                        new_bb[1], new_bb[2], new_bb[3]])
 
     for i in range(0, len(keep_bb)):
         for j in range(0, 4):
@@ -155,6 +155,7 @@ def read_xml_gt(path):
     gt_bb = sorted(gt_bb, key=lambda x: x[0])
     return gt_bb
 
+
 def read_xml_gt_options(path, remove_occluded, remove_parked):
     """
     Reads the .xml file for the GT removing or not occulded and parked instances
@@ -165,7 +166,7 @@ def read_xml_gt_options(path, remove_occluded, remove_parked):
     gt_bb = []
     for child in root[2:]:
         for c in child:
-            if remove_occluded and c.attrib["occluded"]==1:
+            if remove_occluded and c.attrib["occluded"] == 1:
                 continue
             if remove_parked and child.attrib['label'] == "car" and c[0].text == "true":
                 continue
@@ -210,7 +211,8 @@ def read_detections_file(path):
         bb.append(test_list)
     return bb
 
-def FrameCapture(path,directory):
+
+def FrameCapture(path, directory):
     """
     To reconstruct the video with the bounding boxes we need to extract the frames
     and save them somewhere
@@ -237,6 +239,7 @@ def FrameCapture(path,directory):
 
                 count += 1
                 print('frame saved: ', count)
+
 
 def save_frames(path):
     """
