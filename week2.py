@@ -98,6 +98,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
     grid_search = False
     save_videos = False
     fine_tune_search = True
+    videos_rgb_bb = False
 
     gt_bb = read_xml_gt_options(gt_path, True, True)
 
@@ -164,8 +165,8 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
 
     if fine_tune_search:
         mAPs = []
-        alphas = [3.1]
-        rhos = [0.01]
+        alphas = [3, 3, 3, 3.5, 3.5, 3.5, 4, 4, 4, 3.5, 3.5, 3.5, 3.5, 3.7, 3.2, 3.1, 3.3]
+        rhos = [0.0, 0.2, 0.4, 0.0, 0.2, 0.4, 0.0, 0.2, 0.4, 0.1, 0.3, 0.15, 0.05, 0.03, 0.02, 0.01, 0.01]
         for i in range(0, len(alphas)):
             det_bb = remove_bg(mu,
                                sigma,
@@ -196,11 +197,34 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
             circle = plt.Circle((alphas[i], rhos[i]), mAPs[i]/25)
             ax.add_artist(circle)
 
-
         plt.savefig("plot_circle_matplotlib_02.png", bbox_inches='tight')
-
         plt.show()
-
+    if videos_rgb_bb:
+        alpha = 3.2
+        rho = 0.02
+        det_bb = remove_bg(mu,
+                           sigma,
+                           alpha,
+                           frames_path,
+                           int(video_n_frames * 0.25),
+                           video_n_frames,
+                           color_space=color_space,
+                           adaptive=True,
+                           rho=rho,
+                           denoise = True)
+        animation_2bb('rgb_bb_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
+              int(1920 / 4), int(1080 / 4))
+        det_bb = remove_bg(mu,
+                           sigma,
+                           alpha,
+                           frames_path,
+                           int(video_n_frames * 0.25),
+                           video_n_frames,
+                           color_space=color_space,
+                           adaptive=False,
+                           denoise = True)
+        animation_2bb('rgb_bb_non_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
+              int(1920 / 4), int(1080 / 4))
 
 def task3():
     ims = sorted(glob("datasets/AICity_data/train/S03/c010/data/*.jpg"))
