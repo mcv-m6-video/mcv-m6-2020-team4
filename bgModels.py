@@ -7,7 +7,7 @@ import imageio
 import numpy as np
 
 from data import number_of_images_jpg
-
+from scipy import ndimage
 
 def unsqueeze(img):
 
@@ -104,11 +104,11 @@ def remove_bg(
             mu[frame == 0] = rho * img[frame == 0] + (1 - rho) * mu[frame == 0]
             sigma[frame == 0] = np.sqrt(rho * np.power((img[frame == 0] - mu[frame == 0]), 2) + (1 - rho) * np.power(sigma[frame == 0], 2))
 
+        if denoise:
+            frame = denoise_bg(frame)
+
         if animation:
             frames[c, ...] = cv2.resize(frame, (sy, sx))
-
-        if denoise:
-            frame = cv2.medianBlur(frame, 7)
 
         (_, contours, _) = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
@@ -119,6 +119,7 @@ def remove_bg(
             if w > 10 and h > 10:
                 detected_bb.append([i, 'car', 0, x, y, x + w, y + h])
         c = c + 1
+#        print(i)
     if animation:
         imageio.mimsave(
             'bg_removal_a{}_p{}_{}.gif'.format(
@@ -126,6 +127,19 @@ def remove_bg(
 
     return detected_bb
 
+
+def denoise_bg(frame):
+    kernel1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(30,20))
+    frame = cv2.medianBlur(frame,7)
+    filled = frame
+    # Flood fill
+    filled = ndimage.binary_fill_holes(filled).astype(np.uint8)
+    # Erode
+    filled = cv2.erode(filled, kernel1, iterations=1)
+    # Dilate
+    filled = cv2.dilate(filled, kernel, iterations=1)
+    return (filled*255).astype(np.uint8)
 
 def bg_estimation(mode, **kwargs):
 
