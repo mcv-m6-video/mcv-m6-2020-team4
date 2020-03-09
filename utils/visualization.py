@@ -112,12 +112,33 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, ini, wi
         video.release()
 
 
+def frame_with_2bb(gt_bb, det_bb, frame_path, f_val):
+    lst_gt = [item[0] for item in gt_bb]
+    lst_nogt = [item[0] for item in det_bb]
+    frame1 = cv2.imread((frame_path + '/frame_{:04d}.jpg').format(f_val))
 
+    args_gt = [i for i, num in enumerate(lst_gt) if num == f_val]
+    for ar in args_gt:
+        # Ground truth bounding box in green
+        cv2.rectangle(frame1, (int(gt_bb[ar][3]), int(gt_bb[ar][4])),
+                      (int(gt_bb[ar][5]), int(gt_bb[ar][6])), (0, 255, 0), 2)
+
+    args_nogt = [i for i, num in enumerate(lst_nogt) if num == f_val]
+    for ar in args_nogt:
+        # guessed GT in blue
+        cv2.rectangle(frame1, (int(det_bb[ar][3]), int(det_bb[ar][4])),
+                      (int(det_bb[ar][5]), int(det_bb[ar][6])), (255, 0, 0), 2)
+
+    frame1 = cv2.resize(frame1, (int(1920 / 4), int(1080 / 4)))
+    
+    imageio.imsave('frame{}_with_2bb.png'.format(f_val),frame1)
+    
+    
 
 if __name__ == '__main__':
     annots = load_annots("../datasets/ai_challenge_s03_c010-full_annotation.xml")
 
     classes = ['car', ]
     annots = filter_annots(annots, classes=classes)
-    animation = animate_iou(annots)
-    animation.save('test.gif')
+    ani = animate_iou(annots)
+    ani.save('test.gif')
