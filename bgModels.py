@@ -15,7 +15,6 @@ def bg_model_grayscale(frames_path):
     video_n_frames = number_of_images_jpg(frames_path)
     p25_frames = int(video_n_frames*0.25)
     img = cv2.imread(frames_path+'/frame_0001.jpg',0)
-    print(np.shape(img))
     imga = np.zeros((p25_frames, np.shape(img)[0], np.shape(img)[1])).astype(np.float16())
     print('Reading frames ')
     for i in range(0, p25_frames):
@@ -114,6 +113,6 @@ def remove_adaptive_bg(mu_original, sigma_original, alpha, rho, frames_path,
                 detected_bb.append([i, 'car', 0, x, y, x+w, y+h])
         c = c+1
     if animation:
-        imageio.mimsave('bg_removal_a{}.gif'.format(alpha), frames)
+        imageio.mimsave('bg_removal_a{}_p{}.gif'.format(alpha, rho), frames)
 
     return detected_bb

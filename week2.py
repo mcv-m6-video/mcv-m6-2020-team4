@@ -10,7 +10,7 @@ from metrics.mAP import calculate_ap
 
 def main():
     print("Task 1")
-    task1("datasets/ai_challenge_s03_c010-full_annotation.xml")
+    #task1("datasets/ai_challenge_s03_c010-full_annotation.xml")
     print("Task 2")
     task2('datasets/AICity_data/train/S03/c010/data', "datasets/ai_challenge_s03_c010-full_annotation.xml")
     print("Task 3")
@@ -45,12 +45,12 @@ def task1(gt_path):
     aps7 = []
 
     #Test for different alpha values
-    for a in alphas:    
-        det_bb = remove_bg(mu, sigma, a, frames_path, int(video_n_frames*0.25), video_n_frames, 
+    for a in alphas:
+        det_bb = remove_bg(mu, sigma, a, frames_path, int(video_n_frames*0.25), video_n_frames,
                                animation = False, denoise = True)
-        
+
         gt_bb = read_xml_gt_options(gt_path, True, True)
-        
+
 
         ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
         print(a,ap)
@@ -69,6 +69,8 @@ def task1(gt_path):
 
 
 def task2(frames_path, gt_path):
+    grid_search = False
+    save_videos = True
     #mu, sigma = bg_model_grayscale(frames_path)
     #np.savetxt("mu.csv", mu, delimiter=",")
     #np.savetxt("sigma.csv", sigma, delimiter=",")
@@ -81,27 +83,37 @@ def task2(frames_path, gt_path):
     sigma = np.genfromtxt("sigma.csv", delimiter=',')
     video_n_frames = number_of_images_jpg(frames_path)
 
-    mAPs = []
-    alphas = [2, 2.5, 3, 3.5, 4]
-    rhos = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-    for alpha in alphas:
-        mAP_same_alfa = []
-        for rho in rhos:
-            det_bb = remove_adaptive_bg(mu, sigma, alpha, rho, frames_path, int(video_n_frames*0.25), video_n_frames)
-            mAP = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
-            mAP_same_alfa.append(mAP)
-            print("Alpha: {:2f} | Rho: {:2f} | mAP: {:2f} |".format(alpha, rho, mAP))
-        mAPs.append(mAP_same_alfa)
+    if grid_search:
+        mAPs = []
+        alphas = [2, 2.5, 3, 3.5, 4]
+        rhos = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        for alpha in alphas:
+            mAP_same_alfa = []
+            for rho in rhos:
+                det_bb = remove_adaptive_bg(mu, sigma, alpha, rho, frames_path, int(video_n_frames*0.25), video_n_frames)
+                mAP = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
+                mAP_same_alfa.append(mAP)
+                print("Alpha: {:2f} | Rho: {:2f} | mAP: {:2f} |".format(alpha, rho, mAP))
+            mAPs.append(mAP_same_alfa)
 
-    # Plot the surface.
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    surf = ax.plot_surface(alpha, rho, mAPs, rstride=0.1, cstride=0.1,
-                cmap='viridis', edgecolor='none')
-    # Add a color bar which maps values to colors.
-    fig.colorbar(surf, shrink=0.5, aspect=5)
-    plt.savefig("adaptive_grid_search.png")
-    plt.show()
+        # Plot the surface
+        X,Y = np.meshgrid(alphas, rhos)
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        surf = ax.plot_surface(X, Y, mAPs, rstride=0.1, cstride=0.1,
+                    cmap='viridis', edgecolor='none')
+        ax.set_xlabel('Alpha')
+        ax.set_ylabel('Rho')
+        ax.set_zlabel('mAP')
+        # Add a color bar which maps values to colors.
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+        plt.savefig("adaptive_grid_search.png")
+        plt.show()
+    if save_videos:
+        alpha = 3.5
+        rho = 0.2
+        det_bb = remove_adaptive_bg(mu, sigma, alpha, rho, frames_path, 700, 800, animation=True)
+
 
 if __name__ == '__main__':
     main()
