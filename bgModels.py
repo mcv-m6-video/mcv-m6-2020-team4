@@ -3,6 +3,7 @@ import cv2
 from data import number_of_images_jpg
 import imageio
 import copy
+from scipy import ndimage
 
 
 def bg_model_grayscale(frames_path):
@@ -52,11 +53,12 @@ def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame,
         frame = np.zeros(np.shape(img)).astype(np.uint8())
         frame[np.abs(img-mu)>= alpha*(sigma+2)] = 255
         frame[np.abs(img-mu)< alpha*(sigma+2)] = 0
+        
+        if denoise:
+            frame = denoise_bg(frame)
+            
         if animation:
             frames[c,...] = cv2.resize(frame, (sy,sx))
-
-        if denoise:
-            frame = cv2.medianBlur(frame,7)
 
         (_,contours,_) = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
@@ -67,10 +69,24 @@ def remove_bg(mu, sigma, alpha, frames_path, initial_frame, final_frame,
             if w>10 and h>10:
                 detected_bb.append([i, 'car', 0, x, y, x+w, y+h])
         c = c+1
+        print(i)
     if animation:
         imageio.mimsave('bg_removal_a{}.gif'.format(alpha), frames)
 
     return detected_bb
+
+
+def denoise_bg(frame):
+    kernel1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(10,10))
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(30,20))
+    frame = cv2.medianBlur(frame,7)
+    filled = frame
+    # Flood fill
+    filled = ndimage.binary_fill_holes(filled).astype(np.uint8)
+    # Opening
+    filled = cv2.erode(filled, kernel1, iterations=1)
+    filled = cv2.dilate(filled, kernel, iterations=1)
+    return (filled*255).astype(np.uint8)
 
 def remove_adaptive_bg(mu_original, sigma_original, alpha, rho, frames_path,
             initial_frame, final_frame, animation = False, denoise = False):

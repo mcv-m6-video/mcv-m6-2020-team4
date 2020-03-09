@@ -41,24 +41,32 @@ def task1(gt_path):
 
 
     alphas = [1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7]
-    aps7 = []
+    aps3 = []
 
     #Test for different alpha values
     for a in alphas:    
-        det_bb = remove_bg(mu, sigma, a, frames_path, int(video_n_frames*0.25), video_n_frames, 
-                               animation = False, denoise = True)
+        det_bb = remove_bg(mu, sigma, 2.5, frames_path, int(video_n_frames*0.25), int(video_n_frames*0.25) + 100, 
+                               animation = True, denoise = True)
         
         gt_bb = read_xml_gt_options(gt_path, True, True)
         
 
         ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
+        animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1,
+              int(1920 / 4), int(1080 / 4))
+        
+        
         print(a,ap)
-        aps7.append(ap)
+        aps3.append(ap)
 
-    #
-    #
-    animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1,
-                  int(1920 / 4), int(1080 / 4))
+    plt.title('Median Filter')
+    plt.plot(alphas, aps3, label = 'Window size 3')
+#    plt.plot(alphas, aps5, label = 'Window size 5')
+#    plt.plot(alphas, aps7, label = 'Window size 7')
+    plt.legend()
+    
+
+
 
 #
 #
@@ -93,3 +101,11 @@ def task2(frames_path, gt_path):
 
 if __name__ == '__main__':
     main()
+
+
+
+
+    
+
+    
+    
