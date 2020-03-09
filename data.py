@@ -98,7 +98,8 @@ def generate_noisy_annotations(gt_bb):
     for i in range(0, args_to_generate):
         frame_to_insert = np.random.randint(0, last_frame)
         new_bb = gen_random_bb(xtl_mean, ytl_mean, xbr_mean, ybr_mean, 100)
-        keep_bb.append([frame_to_insert, 'car', 0, new_bb[0], new_bb[1], new_bb[2], new_bb[3]])
+        keep_bb.append([frame_to_insert, 'car', 0, new_bb[0],
+                        new_bb[1], new_bb[2], new_bb[3]])
 
     for i in range(0, len(keep_bb)):
         for j in range(0, 4):
@@ -255,4 +256,4 @@ def number_of_images_jpg(path):
     """
     Computes how many images are in the given path
     """
-    return len(glob.glob1(path, "*.jpeg"))
+    return len(glob.glob1(path, "*.jpg"))
