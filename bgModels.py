@@ -7,7 +7,7 @@ import imageio
 import numpy as np
 
 from data import number_of_images_jpg
-
+from scipy import ndimage
 
 def unsqueeze(img):
 
@@ -116,6 +116,7 @@ def remove_bg(
             if w > 10 and h > 10:
                 detected_bb.append([i, 'car', 0, x, y, x + w, y + h])
         c = c + 1
+#        print(i)
     if animation:
         imageio.mimsave(
             'bg_removal_a{}_p{}_{}.gif'.format(

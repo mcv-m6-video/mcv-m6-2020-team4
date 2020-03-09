@@ -76,17 +76,19 @@ def task1(gt_path, color_space=cv2.COLOR_BGR2GRAY):
         gt_bb = read_xml_gt_options(gt_path, True, True)
 
         ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
-        animation_2bb('try', '.gif', gt_bb, det_bb, frames_path, 10, 100, int(video_n_frames*0.25) + 1,
+        animation_2bb('try_dnoise', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
               int(1920 / 4), int(1080 / 4))
         
         
         print(a,ap)
-        aps3.append(ap)
+        aps7.append(ap)
 
     plt.title('Median Filter')
-    plt.plot(alphas, aps3, label = 'Window size 3')
+#    plt.plot(alphas, aps3, label = 'Window size 3')
 #    plt.plot(alphas, aps5, label = 'Window size 5')
-#    plt.plot(alphas, aps7, label = 'Window size 7')
+    plt.plot(alphas, aps7, label = 'Window size 7')
+    plt.xlabel(r'$\alpha$')
+    plt.ylabel('mAP')
     plt.legend()
 
 
