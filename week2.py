@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pylab as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from data import read_xml_gt, FrameCapture, read_xml_gt_options
 from data import save_frames, number_of_images_jpg, filter_gt
@@ -81,15 +82,26 @@ def task2(frames_path, gt_path):
     video_n_frames = number_of_images_jpg(frames_path)
 
     mAPs = []
-    alphas = [2.5]
-    rhos = [0.1]
-
+    alphas = [2, 2.5, 3, 3.5, 4]
+    rhos = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
     for alpha in alphas:
+        mAP_same_alfa = []
         for rho in rhos:
             det_bb = remove_adaptive_bg(mu, sigma, alpha, rho, frames_path, int(video_n_frames*0.25), video_n_frames)
             mAP = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
-            mAPs.append(mAP)
+            mAP_same_alfa.append(mAP)
             print("Alpha: {:2f} | Rho: {:2f} | mAP: {:2f} |".format(alpha, rho, mAP))
+        mAPs.append(mAP_same_alfa)
+
+    # Plot the surface.
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    surf = ax.plot_surface(alpha, rho, mAPs, rstride=0.1, cstride=0.1,
+                cmap='viridis', edgecolor='none')
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    plt.savefig("adaptive_grid_search.png")
+    plt.show()
 
 if __name__ == '__main__':
     main()
