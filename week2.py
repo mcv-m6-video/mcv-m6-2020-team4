@@ -15,7 +15,7 @@ from glob import glob
 def main():
 
     color_space = cv2.COLOR_BGR2GRAY
-    color_space = cv2.COLOR_BGR2HSV
+    # color_space = cv2.COLOR_BGR2HSV
     # color_space = cv2.COLOR_BGR2RGB
 
     # print("Task 1")
@@ -26,7 +26,7 @@ def main():
         "datasets/ai_challenge_s03_c010-full_annotation.xml",
         color_space=color_space)
     print("Task 3")
-    task3()
+    # task3()
     print("Task 4")
 
 
@@ -79,8 +79,8 @@ def task1(gt_path, color_space=cv2.COLOR_BGR2GRAY):
         ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
         animation_2bb('try_dnoise', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
               int(1920 / 4), int(1080 / 4))
-        
-        
+
+
         print(a,ap)
         aps7.append(ap)
 
@@ -96,7 +96,8 @@ def task1(gt_path, color_space=cv2.COLOR_BGR2GRAY):
 
 def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
     grid_search = False
-    save_videos = True
+    save_videos = False
+    fine_tune_search = True
 
     gt_bb = read_xml_gt_options(gt_path, True, True)
 
@@ -108,7 +109,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
 
     if grid_search:
         mAPs = []
-        alphas = [2, 2.5, 3, 3.5, 4]
+        alphas = [2, 2.5, 3, 3.5, 4, 4.5]
         rhos = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
         for alpha in alphas:
             mAP_same_alfa = []
@@ -147,16 +148,58 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
 
     if save_videos:
         alpha = 3.5
+        rho = 0.5
         det_bb = remove_bg(
             mu,
             sigma,
             alpha,
             frames_path,
-            700,
-            800,
+            int(video_n_frames * 0.25) + 300,
+            int(video_n_frames * 0.25) + 400,
+            rho=rho,
+            denoise=False,
             animation=True,
             color_space=color_space,
             adaptive=True)
+
+    if fine_tune_search:
+        mAPs = []
+        alphas = [3.1]
+        rhos = [0.01]
+        for i in range(0, len(alphas)):
+            det_bb = remove_bg(mu,
+                               sigma,
+                               alphas[i],
+                               frames_path,
+                               int(video_n_frames * 0.25),
+                               video_n_frames,
+                               color_space=color_space,
+                               adaptive=True,
+                               rho=rhos[i],
+                               denoise = True)
+            mAP = calculate_ap(
+                det_bb, gt_bb, int(
+                    video_n_frames * 0.25), video_n_frames, mode='area')
+            print(
+                "Alpha: {:2f} | Rho: {:2f} | mAP: {:2f} |".format(
+                    alphas[i], rhos[i], mAP))
+            mAPs.append(mAP)
+
+        fig, ax = plt.subplots()
+        plt.xlim(2.9, 4.1)
+        plt.ylim(-0.1, 0.5)
+        ax.set_aspect(1)
+        ax.set_xlabel('Alpha')
+        ax.set_ylabel('Rho')
+
+        for i in range(0, len(mAPs)):
+            circle = plt.Circle((alphas[i], rhos[i]), mAPs[i]/25)
+            ax.add_artist(circle)
+
+
+        plt.savefig("plot_circle_matplotlib_02.png", bbox_inches='tight')
+
+        plt.show()
 
 
 def task3():
@@ -210,11 +253,3 @@ def task3():
 
 if __name__ == '__main__':
     main()
-
-
-
-
-    
-
-    
-    
