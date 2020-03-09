@@ -88,18 +88,21 @@ def remove_bg(
             sx, sy = np.int(np.shape(img)[0] / 4), np.int(np.shape(img)[1] / 4)
             frames = np.zeros((final_frame - initial_frame, sx, sy)).astype(np.uint8())
 
-        frame = np.zeros(np.shape(img)).astype(np.uint8())
+        frame = np.zeros(np.shape(img))
         frame[np.abs(img - mu) >= alpha * (sigma + 2)] = 255
         frame[np.abs(img - mu) < alpha * (sigma + 2)] = 0
 
         if len(frame.shape) != 2:
-            frame = np.ascontiguousarray(frame[..., 0])
+            frame = frame.mean(-1)
+            frame[frame > 166] = 255
+            frame[frame < 166] = 0
+
+        frame = np.ascontiguousarray(frame).astype("uint8")
 
         if adaptive:
             # Update mu and sigma if needed
             mu[frame == 0] = rho * img[frame == 0] + (1 - rho) * mu[frame == 0]
             sigma[frame == 0] = np.sqrt(rho * np.power((img[frame == 0] - mu[frame == 0]), 2) + (1 - rho) * np.power(sigma[frame == 0], 2))
-
 
         if animation:
             frames[c, ...] = cv2.resize(frame, (sy, sx))

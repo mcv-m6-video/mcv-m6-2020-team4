@@ -15,10 +15,11 @@ from glob import glob
 def main():
 
     color_space = cv2.COLOR_BGR2GRAY
-    # color_space = cv2.COLOR_BGR2HSV
+    color_space = cv2.COLOR_BGR2HSV
+    # color_space = cv2.COLOR_BGR2RGB
 
-    print("Task 1")
-    task1("datasets/ai_challenge_s03_c010-full_annotation.xml", color_space=color_space)
+    # print("Task 1")
+    # task1("datasets/ai_challenge_s03_c010-full_annotation.xml", color_space=color_space)
     print("Task 2")
     task2(
         'datasets/AICity_data/train/S03/c010/data/',
@@ -102,8 +103,15 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
         for alpha in alphas:
             mAP_same_alfa = []
             for rho in rhos:
-                det_bb = remove_bg(mu, sigma, alpha, frames_path, int(
-                    video_n_frames * 0.25), video_n_frames, color_space=color_space, adaptive=True, rho=rho)
+                det_bb = remove_bg(mu,
+                                   sigma,
+                                   alpha,
+                                   frames_path,
+                                   int(video_n_frames * 0.25),
+                                   video_n_frames,
+                                   color_space=color_space,
+                                   adaptive=True,
+                                   rho=rho)
                 mAP = calculate_ap(
                     det_bb, gt_bb, int(
                         video_n_frames * 0.25), video_n_frames, mode='area')
@@ -139,6 +147,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
             animation=True,
             color_space=color_space,
             adaptive=True)
+
 
 def task3():
     ims = sorted(glob("datasets/AICity_data/train/S03/c010/data/*.jpg"))
