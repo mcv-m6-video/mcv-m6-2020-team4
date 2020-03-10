@@ -71,7 +71,7 @@ def remove_bg(
         denoise=False,
         adaptive=True,
         rho=0.2,
-        color_space=cv2.COLOR_BGR2GRAY):
+        color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
     """
     Save detected bb in the same format as GT which is:
         'frame', 'label', 'id', 'xtl','ytl','xbr','ybr'
@@ -89,15 +89,16 @@ def remove_bg(
             frames = np.zeros((final_frame - initial_frame, sx, sy)).astype(np.uint8())
 
         frame = np.zeros(np.shape(img))
-        frame[np.abs(img - mu) >= alpha * (sigma + 2)] = 255
+        frame[np.abs(img - mu) >= alpha * (sigma + 2)] = 1
         frame[np.abs(img - mu) < alpha * (sigma + 2)] = 0
 
         if len(frame.shape) != 2:
+            frame = frame[:, :, channels]
             frame = frame.mean(-1)
-            frame[frame > 166] = 255
-            frame[frame < 166] = 0
+            frame[frame >= 0.33] = 1
+            frame[frame < 0.33] = 0
 
-        frame = np.ascontiguousarray(frame).astype("uint8")
+        frame = np.ascontiguousarray(frame * 255).astype("uint8")
 
         if adaptive:
             # Update mu and sigma if needed

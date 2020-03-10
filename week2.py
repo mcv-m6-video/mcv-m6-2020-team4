@@ -15,8 +15,9 @@ from glob import glob
 def main():
 
     color_space = cv2.COLOR_BGR2GRAY
-    color_space = cv2.COLOR_BGR2HSV
+    # color_space = cv2.COLOR_BGR2HSV
     # color_space = cv2.COLOR_BGR2RGB
+    channels = (0, 2)
 
     # print("Task 1")
     # task1("datasets/ai_challenge_s03_c010-full_annotation.xml", color_space=color_space)
@@ -24,7 +25,7 @@ def main():
     task2(
         'datasets/AICity_data/train/S03/c010/data/',
         "datasets/ai_challenge_s03_c010-full_annotation.xml",
-        color_space=color_space)
+        color_space=color_space, channels=channels)
     print("Task 3")
     task3()
     print("Task 4")
@@ -79,8 +80,8 @@ def task1(gt_path, color_space=cv2.COLOR_BGR2GRAY):
         ap = calculate_ap(det_bb, gt_bb, int(video_n_frames*0.25), video_n_frames, mode = 'area')
         animation_2bb('try_dnoise', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
               int(1920 / 4), int(1080 / 4))
-        
-        
+
+
         print(a,ap)
         aps7.append(ap)
 
@@ -94,7 +95,8 @@ def task1(gt_path, color_space=cv2.COLOR_BGR2GRAY):
 
 
 
-def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
+def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
+
     grid_search = False
     save_videos = True
 
@@ -121,7 +123,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
                                    video_n_frames,
                                    color_space=color_space,
                                    adaptive=True,
-                                   rho=rho)
+                                   rho=rho, channels=channels)
                 mAP = calculate_ap(
                     det_bb, gt_bb, int(
                         video_n_frames * 0.25), video_n_frames, mode='area')
@@ -156,8 +158,15 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
             800,
             animation=True,
             color_space=color_space,
-            adaptive=True)
+            adaptive=True,
+            channels=channels)
 
+
+        mAP = calculate_ap(
+            det_bb, gt_bb, int(
+                video_n_frames * 0.25), video_n_frames, mode='area')
+
+        print(f"Channels: {channels}, Colorspace: {color_space}, mAP: {mAP}")
 
 def task3():
     ims = sorted(glob("datasets/AICity_data/train/S03/c010/data/*.jpg"))
@@ -214,7 +223,7 @@ if __name__ == '__main__':
 
 
 
-    
 
-    
-    
+
+
+
