@@ -8,16 +8,26 @@ from data import save_frames, number_of_images_jpg, filter_gt
 from utils.visualization import animate_iou, animation_2bb, plot_animation
 from bgModels import bg_model, remove_bg, bg_estimation
 from metrics.mAP import calculate_ap
+from opt import parse_args
 from utils.visualization import animation_2bb
 from glob import glob
 
 
+
 def main():
 
-    color_space = cv2.COLOR_BGR2GRAY
-    # color_space = cv2.COLOR_BGR2HSV
-    # color_space = cv2.COLOR_BGR2RGB
-    channels = (0, 2)
+    opt = parse_args()
+
+    if opt.color == "gray":
+        color_space = cv2.COLOR_BGR2GRAY
+    elif opt.color == "hsv":
+        color_space = cv2.COLOR_BGR2HSV
+    elif opt.color == "rgb":
+        color_space = cv2.COLOR_BGR2RGB
+    elif opt.color == "ycrcb":
+        color_space = cv2.COLOR_BGR2YCrCb
+
+    channels = tuple(opt.channels)
 
     # print("Task 1")
     # task1("datasets/ai_challenge_s03_c010-full_annotation.xml", color_space=color_space)
@@ -150,8 +160,8 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
         plt.show()
 
     if save_videos:
-        alpha = 3.5
-        rho = 0.5
+        alpha = 2.5
+        rho = 0.02
         det_bb = remove_bg(
             mu,
             sigma,
@@ -160,18 +170,14 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
             int(video_n_frames * 0.25) + 300,
             int(video_n_frames * 0.25) + 400,
             rho=rho,
-            denoise=False,
+            denoise=True,
             animation=True,
             color_space=color_space,
-            adaptive=True,
+            adaptive=False,
             channels=channels)
 
 
-        mAP = calculate_ap(
-            det_bb, gt_bb, int(
-                video_n_frames * 0.25), video_n_frames, mode='area')
 
-        print(f"Channels: {channels}, Colorspace: {color_space}, mAP: {mAP}")
 
     if fine_tune_search:
         mAPs = []
@@ -221,21 +227,34 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
                            color_space=color_space,
                            adaptive=True,
                            rho=rho,
-                           denoise = True)
-        animation_2bb('rgb_bb_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
-              int(1920 / 4), int(1080 / 4))
-        alpha = 2.5
-        det_bb = remove_bg(mu,
-                           sigma,
-                           alpha,
-                           frames_path,
-                           int(video_n_frames * 0.25),
-                           video_n_frames,
-                           color_space=color_space,
-                           adaptive=False,
-                           denoise = True)
-        animation_2bb('rgb_bb_non_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
-              int(1920 / 4), int(1080 / 4))
+                           denoise = True,
+                           channels=channels)
+        print("Calculating AP")
+        mAP = calculate_ap(
+            det_bb, gt_bb, int(
+                video_n_frames * 0.25), video_n_frames, mode='area')
+        # animation_2bb('rgb_bb_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
+        #       int(1920 / 4), int(1080 / 4))
+        print(f"Channels: {channels}, Colorspace: {color_space}, mAP: {mAP}")
+        # alpha = 2.5
+        # det_bb = remove_bg(mu,
+        #                    sigma,
+        #                    alpha,
+        #                    frames_path,
+        #                    int(video_n_frames * 0.25),
+        #                    video_n_frames,
+        #                    color_space=color_space,
+        #                    adaptive=False,
+        #                    denoise = True)
+
+        # print("Calculating AP")
+        # mAP = calculate_ap(
+        #     det_bb, gt_bb, int(
+        #         video_n_frames * 0.25), video_n_frames, mode='area')
+
+        print(f"Channels: {channels}, Colorspace: {color_space}, mAP: {mAP}")
+        # animation_2bb('rgb_bb_non_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
+        #       int(1920 / 4), int(1080 / 4))
 
 def task3():
     ims = sorted(glob("datasets/AICity_data/train/S03/c010/data/*.jpg"))

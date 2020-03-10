@@ -1,6 +1,7 @@
 import copy
 import os
 import pickle as pkl
+from tqdm import tqdm
 
 import cv2
 import imageio
@@ -79,7 +80,7 @@ def remove_bg(
 
     c = 0
     detected_bb = []
-    for i in range(initial_frame, final_frame):
+    for i in tqdm(range(initial_frame, final_frame)):
         # read image
         img = cv2.imread(frames_path + ('/frame_{:04d}.jpg'.format(i + 1)))
         img = cv2.cvtColor(img, color_space).astype(np.float32)
@@ -94,9 +95,11 @@ def remove_bg(
 
         if len(frame.shape) != 2:
             frame = frame[:, :, channels]
-            frame = frame.mean(-1)
-            frame[frame >= 0.33] = 1
-            frame[frame < 0.33] = 0
+            max_v = len(channels)
+
+            frame = frame.sum(-1)
+            frame[frame == max_v] = 1
+            frame[frame != max_v] = 0
 
         frame = np.ascontiguousarray(frame * 255).astype("uint8")
 
