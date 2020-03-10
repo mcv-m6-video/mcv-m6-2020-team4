@@ -97,8 +97,8 @@ def task1(gt_path, color_space=cv2.COLOR_BGR2GRAY):
 def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
     grid_search = False
     save_videos = False
-    fine_tune_search = True
-    videos_rgb_bb = False
+    fine_tune_search = False
+    videos_rgb_bb = True
 
     gt_bb = read_xml_gt_options(gt_path, True, True)
 
@@ -197,7 +197,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
             circle = plt.Circle((alphas[i], rhos[i]), mAPs[i]/25)
             ax.add_artist(circle)
 
-        plt.savefig("plot_circle_matplotlib_02.png", bbox_inches='tight')
+        plt.savefig("fine_tune_search.png", bbox_inches='tight')
         plt.show()
     if videos_rgb_bb:
         alpha = 3.2
@@ -214,6 +214,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY):
                            denoise = True)
         animation_2bb('rgb_bb_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
               int(1920 / 4), int(1080 / 4))
+        alpha = 2.5
         det_bb = remove_bg(mu,
                            sigma,
                            alpha,
