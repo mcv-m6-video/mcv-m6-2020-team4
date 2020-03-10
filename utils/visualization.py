@@ -3,7 +3,7 @@ import imageio
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-from data import load_annots, filter_annots, add_noise_to_bbox
+from data import add_noise_to_bbox
 from metrics.iou import bbox_iou
 
 
@@ -31,7 +31,6 @@ def update_plot_animation(num, x, y, line):
     line.set_data(x[:num], y[:num])
     return line,
 
-    
 
 def animate_iou(dict_frame_gt_bb):
     """
@@ -53,14 +52,14 @@ def animate_iou(dict_frame_gt_bb):
     return animation
 
 
-def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, ini, width, height):
+def animation_2bb(name, format, gt_bb, bb_cords, frame_path, fps=10, seconds=10, ini=0, width=480, height=270):
     """
     This function records a video of some frames with both the GT (green)
     and detection (blue) bounding boxes. If we have a confidence value that number
     is added on top of the bounding box.
     Input
         Name: Name of the file to save
-        form: format of the file, it can be .avi or .gif (. must be included)
+        format: format of the file, it can be .avi or .gif (. must be included)
         gt_bb: ground truth bounding boxes in the same format as reed
         bb_cords: bounding box for the detection
     """
@@ -72,8 +71,8 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, ini, wi
         confid = False
 
     fourcc = cv2.VideoWriter_fourcc(*'MP42')
-    video = cv2.VideoWriter('./' + name + form, fourcc, float(fps), (width, height))
-    
+    video = cv2.VideoWriter('./' + name + format, fourcc, float(fps), (width, height))
+
     lst_gt = [item[0] for item in gt_bb]
     lst_nogt = [item[0] for item in bb_cords]
     images = []
@@ -101,13 +100,13 @@ def animation_2bb(name, form, gt_bb, bb_cords, frame_path, fps, seconds, ini, wi
 
         frame1 = cv2.resize(frame1, (width, height))
 
-        if form == '.gif':
+        if format == '.gif':
             images.append(cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB))
         else:
             video.write(frame1)
 
-    if form == '.gif':
-        imageio.mimsave(name + form, images)
+    if format == '.gif':
+        imageio.mimsave(name + format, images)
     else:
         video.release()
 
@@ -130,15 +129,10 @@ def frame_with_2bb(gt_bb, det_bb, frame_path, f_val):
                       (int(det_bb[ar][5]), int(det_bb[ar][6])), (255, 0, 0), 2)
 
     frame1 = cv2.resize(frame1, (int(1920 / 4), int(1080 / 4)))
-    
-    imageio.imsave('frame{}_with_2bb.png'.format(f_val),frame1)
-    
-    
 
-if __name__ == '__main__':
-    annots = load_annots("../datasets/ai_challenge_s03_c010-full_annotation.xml")
+    imageio.imsave('frame{}_with_2bb.png'.format(f_val), frame1)
 
-    classes = ['car', ]
-    annots = filter_annots(annots, classes=classes)
-    ani = animate_iou(annots)
-    ani.save('test.gif')
+
+def frames_to_gif(filename, frames):
+    frames = frames.astype('uint8')
+    imageio.mimsave(filename, frames)
