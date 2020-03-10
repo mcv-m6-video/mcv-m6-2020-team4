@@ -23,12 +23,13 @@ def bg_model(frames_path, color_space=cv2.COLOR_BGR2GRAY):
     Returns two matrices with the mean and the variance for each pixel.
     It takes quite a long time...
     """
-    mu_file = "mu_{color_space}.pkl"
-    sigma_file = "sigma_{color_space}.pkl"
+    mu_file = f"mu_{color_space}.pkl"
+    sigma_file = f"sigma_{color_space}.pkl"
 
     if os.path.isfile(mu_file) and os.path.isfile(sigma_file):
         mu = pkl.load(open(mu_file, "rb"))
         sigma = pkl.load(open(sigma_file, "rb"))
+        print(f"Loading {mu_file} and {sigma_file}")
         return mu, sigma
 
     video_n_frames = number_of_images_jpg(frames_path)
@@ -88,13 +89,13 @@ def remove_bg(
 
         if len(frame.shape) != 2:
             frame = frame[:, :, channels]
-            max_v = len(channels)
 
             frame = frame.sum(-1)
-            frame[frame == max_v] = 1
-            frame[frame != max_v] = 0
+            max_v = frame.max()
+            frame[frame == max_v] = 255
+            frame[frame != 255] = 0
 
-        frame = np.ascontiguousarray(frame * 255).astype("uint8")
+        frame = np.ascontiguousarray(frame).astype("uint8")
 
         if adaptive:
             # Update mu and sigma if needed
@@ -105,6 +106,8 @@ def remove_bg(
         if denoise:
             frame = denoise_bg(frame)
 
+        cv2.imshow(str(c), frame)
+        cv2.waitKey(0)
         if animation:
             frames[c, ...] = cv2.resize(frame, (sy, sx))
 

@@ -215,7 +215,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
         plt.savefig("fine_tune_search.png", bbox_inches='tight')
         plt.show()
     if videos_rgb_bb:
-        alpha = 3.2
+        alpha = 2.5
         rho = 0.02
         det_bb = remove_bg(mu,
                            sigma,
@@ -226,7 +226,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
                            color_space=color_space,
                            adaptive=True,
                            rho=rho,
-                           denoise = True,
+                           denoise=True,
                            channels=channels)
         print("Calculating AP")
         mAP = calculate_ap(
