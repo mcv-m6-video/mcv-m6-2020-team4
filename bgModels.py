@@ -23,8 +23,8 @@ def bg_model(frames_path, color_space=cv2.COLOR_BGR2GRAY):
     Returns two matrices with the mean and the variance for each pixel.
     It takes quite a long time...
     """
-    mu_file = f"mu_{color_space}.pkl"
-    sigma_file = f"sigma_{color_space}.pkl"
+    mu_file = "mu_{color_space}.pkl"
+    sigma_file = "sigma_{color_space}.pkl"
 
     if os.path.isfile(mu_file) and os.path.isfile(sigma_file):
 

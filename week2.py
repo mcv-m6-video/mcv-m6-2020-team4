@@ -27,7 +27,7 @@ def main():
         "datasets/ai_challenge_s03_c010-full_annotation.xml",
         color_space=color_space, channels=channels)
     print("Task 3")
-    task3()
+    # task3()
     print("Task 4")
 
 
@@ -98,7 +98,9 @@ def task1(gt_path, color_space=cv2.COLOR_BGR2GRAY):
 def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
 
     grid_search = False
-    save_videos = True
+    save_videos = False
+    fine_tune_search = False
+    videos_rgb_bb = True
 
     gt_bb = read_xml_gt_options(gt_path, True, True)
 
@@ -110,7 +112,7 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
 
     if grid_search:
         mAPs = []
-        alphas = [2, 2.5, 3, 3.5, 4]
+        alphas = [2, 2.5, 3, 3.5, 4, 4.5]
         rhos = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
         for alpha in alphas:
             mAP_same_alfa = []
@@ -149,13 +151,16 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
 
     if save_videos:
         alpha = 3.5
+        rho = 0.5
         det_bb = remove_bg(
             mu,
             sigma,
             alpha,
             frames_path,
-            700,
-            800,
+            int(video_n_frames * 0.25) + 300,
+            int(video_n_frames * 0.25) + 400,
+            rho=rho,
+            denoise=False,
             animation=True,
             color_space=color_space,
             adaptive=True,
@@ -167,6 +172,70 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
                 video_n_frames * 0.25), video_n_frames, mode='area')
 
         print(f"Channels: {channels}, Colorspace: {color_space}, mAP: {mAP}")
+
+    if fine_tune_search:
+        mAPs = []
+        alphas = [3, 3, 3, 3.5, 3.5, 3.5, 4, 4, 4, 3.5, 3.5, 3.5, 3.5, 3.7, 3.2, 3.1, 3.3]
+        rhos = [0.0, 0.2, 0.4, 0.0, 0.2, 0.4, 0.0, 0.2, 0.4, 0.1, 0.3, 0.15, 0.05, 0.03, 0.02, 0.01, 0.01]
+        for i in range(0, len(alphas)):
+            det_bb = remove_bg(mu,
+                               sigma,
+                               alphas[i],
+                               frames_path,
+                               int(video_n_frames * 0.25),
+                               video_n_frames,
+                               color_space=color_space,
+                               adaptive=True,
+                               rho=rhos[i],
+                               denoise = True)
+            mAP = calculate_ap(
+                det_bb, gt_bb, int(
+                    video_n_frames * 0.25), video_n_frames, mode='area')
+            print(
+                "Alpha: {:2f} | Rho: {:2f} | mAP: {:2f} |".format(
+                    alphas[i], rhos[i], mAP))
+            mAPs.append(mAP)
+
+        fig, ax = plt.subplots()
+        plt.xlim(2.9, 4.1)
+        plt.ylim(-0.1, 0.5)
+        ax.set_aspect(1)
+        ax.set_xlabel('Alpha')
+        ax.set_ylabel('Rho')
+
+        for i in range(0, len(mAPs)):
+            circle = plt.Circle((alphas[i], rhos[i]), mAPs[i]/25)
+            ax.add_artist(circle)
+
+        plt.savefig("fine_tune_search.png", bbox_inches='tight')
+        plt.show()
+    if videos_rgb_bb:
+        alpha = 3.2
+        rho = 0.02
+        det_bb = remove_bg(mu,
+                           sigma,
+                           alpha,
+                           frames_path,
+                           int(video_n_frames * 0.25),
+                           video_n_frames,
+                           color_space=color_space,
+                           adaptive=True,
+                           rho=rho,
+                           denoise = True)
+        animation_2bb('rgb_bb_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
+              int(1920 / 4), int(1080 / 4))
+        alpha = 2.5
+        det_bb = remove_bg(mu,
+                           sigma,
+                           alpha,
+                           frames_path,
+                           int(video_n_frames * 0.25),
+                           video_n_frames,
+                           color_space=color_space,
+                           adaptive=False,
+                           denoise = True)
+        animation_2bb('rgb_bb_non_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
+              int(1920 / 4), int(1080 / 4))
 
 def task3():
     ims = sorted(glob("datasets/AICity_data/train/S03/c010/data/*.jpg"))
@@ -219,11 +288,3 @@ def task3():
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
