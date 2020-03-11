@@ -88,8 +88,8 @@ def remove_bg(
         frame[np.abs(img - mu) < alpha * (sigma + 2)] = 0
 
         if len(frame.shape) != 2:
-            frame = frame[:, :, channels]
 
+            frame = frame[:, :, channels]
             frame = frame.sum(-1)
             max_v = frame.max()
             frame[frame == max_v] = 255
@@ -109,6 +109,7 @@ def remove_bg(
         if animation:
             frames[c, ...] = cv2.resize(frame, (sy, sx))
 
+        c += 1
         detected_bb += fg_segmentation_to_boxes(frame, i)
 
     if animation:

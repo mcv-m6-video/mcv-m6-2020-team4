@@ -162,23 +162,21 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
         plt.show()
 
     if save_videos:
-        alpha = 2.5
+        alpha = 3.2
         rho = 0.02
         det_bb = remove_bg(
             mu,
             sigma,
             alpha,
             frames_path,
-            int(video_n_frames * 0.25) + 300,
-            int(video_n_frames * 0.25) + 400,
+            800,
+            900,
             rho=rho,
             denoise=True,
             animation=True,
             color_space=color_space,
-            adaptive=False,
+            adaptive=True,
             channels=channels)
-
-
 
 
     if fine_tune_search:
@@ -235,8 +233,8 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
         mAP = calculate_ap(
             det_bb, gt_bb, int(
                 video_n_frames * 0.25), video_n_frames, mode='area')
-        # animation_2bb('rgb_bb_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
-        #       int(1920 / 4), int(1080 / 4))
+        animation_2bb('rgb_bb_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, 800,
+              int(1920 / 4), int(1080 / 4))
         print(f"Channels: {channels}, Colorspace: {color_space}, mAP: {mAP}")
         # alpha = 2.5
         # det_bb = remove_bg(mu,
