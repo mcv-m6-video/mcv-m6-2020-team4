@@ -9,14 +9,19 @@
 
 ## Usage 💻
 ```
-python3 week{i}.py
+python3 week1.py
 ```
+
+```
+python3 week2.py[-color (str) -channels (index of channels)]
+```
+
 ## Link to slides
 
 | Week | Link |
 | ------------- | ------------ |
 |**Week 1**|[Slides week1](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)|
-|**Week 2**|[Slides week2](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)|
+|**Week 2**|[Slides week2](https://docs.google.com/presentation/d/1-UHPhtYsmF_734AwNUiY4mrO-wnJpJK_MNgYcoq-Xbs/edit?usp=sharing)|
 
 
 ### Week1 
@@ -83,4 +88,16 @@ mAP
 
 
 * [x] Task 3: Comparison with the state of the art
+
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/graph.png)
+
 * [x] Task 4: Color sequences
+
+|Color Space|Channels|mAP|
+|:-:|:-:|:-:|
+|RGB|R & B|0.51|
+|HSV|H & V|0.20|
+|HSV|H|0.12|
+|YCrCb|Cr & Cb|0.02|
+|CIELAB|A & B|0.03|
+

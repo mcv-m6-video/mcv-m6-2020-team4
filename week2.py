@@ -2,7 +2,7 @@ import cv2
 import matplotlib.pylab as plt
 import numpy as np
 
-from bgModels import bg_model, remove_bg, bg_estimation, fg_segmentation_to_boxes
+from bgModels import bg_model, remove_bg, bg_estimation, fg_segmentation_to_boxes, denoise_bg
 from data import read_xml_gt_options
 from data import save_frames, number_of_images_jpg, filter_gt
 from metrics.mAP import calculate_ap
@@ -30,15 +30,12 @@ def main():
     elif opt.color == "lab":
         color_space = cv2.COLOR_BGR2LAB
 
-    channels = tuple(opt.channels)
+    # channels = tuple(opt.channels)
 
     # print("Task 1")
     # task1("datasets/ai_challenge_s03_c010-full_annotation.xml", color_space=color_space)
-    print("Task 2")
-    task2(
-        'datasets/AICity_data/train/S03/c010/data/',
-        "datasets/ai_challenge_s03_c010-full_annotation.xml",
-        color_space=color_space, channels=channels)
+    # print("Task 2")
+    # task2('datasets/AICity_data/train/S03/c010/data/', "datasets/ai_challenge_s03_c010-full_annotation.xml",color_space=color_space, channels=channels)
 
     # print("Task 3")
     # task3("datasets/AICity_data/train/S03/c010/data", 'datasets/ai_challenge_s03_c010-full_annotation.xml',
@@ -255,13 +252,16 @@ def task2(frames_path, gt_path, color_space=cv2.COLOR_BGR2GRAY, channels=(0)):
         # animation_2bb('rgb_bb_non_adaptive', '.gif', gt_bb, det_bb, frames_path, 10, 10, int(video_n_frames*0.25),
         #       int(1920 / 4), int(1080 / 4))
 
+
 def task3(frames_path, annots_file, estimation_percent=.25, save_to_disk=False, save_size=(480, 270)):
     ims = get_files_from_dir(frames_path, "jpg")
     gt_bb = read_xml_gt_options(annots_file, True, True)
+    save_to_disk = False
 
     init_images = int(len(ims) * estimation_percent)
     first_eval_image = init_images + 1
     modes = ['mog', 'knn', 'gmg', 'LSBP']
+
     model_params = {
         'mog': {
             # 'varThreshold': 32
@@ -285,9 +285,11 @@ def task3(frames_path, annots_file, estimation_percent=.25, save_to_disk=False, 
             frames = np.zeros((len(ims) - first_eval_image, save_size[1], save_size[0]))
 
         for i, im in enumerate(ims):
-            im = cv2.imread(im)
+            im = cv2.imread(im, 0)
             fg = bg_sub.apply(im)
             fg[fg != 255] = 0
+
+            # fg = denoise_bg(fg)
 
             if i >= first_eval_image:
                 det_bb += fg_segmentation_to_boxes(fg, i)
@@ -298,8 +300,8 @@ def task3(frames_path, annots_file, estimation_percent=.25, save_to_disk=False, 
 
         ap = calculate_ap(det_bb, gt_bb, init_images + 1, len(ims), mode='area')
         if save_to_disk:
-            animation_2bb('{}_bg'.format(mode), '.gif', gt_bb, det_bb, frames_path, ini=first_eval_image)
-            frames_to_gif("fg_{}.gif".format(mode), frames)
+            animation_2bb('{}_bg'.format(mode), '.gif', gt_bb, det_bb, frames_path, ini=800, )
+            frames_to_gif("fg_{}.gif".format(mode), frames[:100])
 
         print("{} - {}".format(mode, ap))
 
