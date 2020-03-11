@@ -21,7 +21,7 @@ python3 week2.py[-color (str) -channels (index of channels)]
 | Week | Link |
 | ------------- | ------------ |
 |**Week 1**|[Slides week1](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)|
-|**Week 2**|[Slides week2](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)|
+|**Week 2**|[Slides week2](https://docs.google.com/presentation/d/1-UHPhtYsmF_734AwNUiY4mrO-wnJpJK_MNgYcoq-Xbs/edit?usp=sharing)|
 
 
 ### Week1 
