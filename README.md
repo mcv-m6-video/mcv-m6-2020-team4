@@ -9,8 +9,13 @@
 
 ## Usage 💻
 ```
-python3 week{i}.py
+python3 week1.py
 ```
+
+```
+python3 week2.py[-color (str) -channels (index of channels)]
+```
+
 ## Link to slides
 
 | Week | Link |
