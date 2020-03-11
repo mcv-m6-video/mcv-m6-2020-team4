@@ -17,6 +17,7 @@ from utils.visualization import animation_2bb, frames_to_gif
 def main():
 
     opt = parse_args()
+    print(opt.__dict__)
 
     if opt.color == "gray":
         color_space = cv2.COLOR_BGR2GRAY
@@ -26,6 +27,8 @@ def main():
         color_space = cv2.COLOR_BGR2RGB
     elif opt.color == "ycrcb":
         color_space = cv2.COLOR_BGR2YCrCb
+    elif opt.color == "lab":
+        color_space = cv2.COLOR_BGR2LAB
 
     channels = tuple(opt.channels)
 
@@ -37,9 +40,9 @@ def main():
         "datasets/ai_challenge_s03_c010-full_annotation.xml",
         color_space=color_space, channels=channels)
 
-    print("Task 3")
-    task3("datasets/AICity_data/train/S03/c010/data", 'datasets/ai_challenge_s03_c010-full_annotation.xml',
-          save_to_disk=True)
+    # print("Task 3")
+    # task3("datasets/AICity_data/train/S03/c010/data", 'datasets/ai_challenge_s03_c010-full_annotation.xml',
+    #       save_to_disk=True)
     print("Task 4")
 
 

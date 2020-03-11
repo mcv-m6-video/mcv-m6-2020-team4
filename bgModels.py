@@ -106,8 +106,6 @@ def remove_bg(
         if denoise:
             frame = denoise_bg(frame)
 
-        cv2.imshow(str(c), frame)
-        cv2.waitKey(0)
         if animation:
             frames[c, ...] = cv2.resize(frame, (sy, sx))
 
