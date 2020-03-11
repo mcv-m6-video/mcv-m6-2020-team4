@@ -48,8 +48,34 @@ python3 week{i}.py
 ### Week2
 [Slides week2]()
 * [x] Task 1.1: Gaussian. Implementation
+
+Mean image
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/mu.png)
+
+Variance image
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/sigma.png)
+
 * [x] Task 1.2: Gaussian. Discussion
+
+Denoising method
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/denoise.gif)
+
 * [x] Task 2.1: Adaptive modeling 
+
+Grid search and finetuning of parameters
+
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/2_1.PNG)
+
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/2_1b.PNG)
+
 * [x] Task 2.2: Adaptive vs non-adaptive models
+
+mAP
+
+|Non-Adaptive        | Adaptive |
+|:------------------:| --------:|
+|0.286               | 0.564    |
+
+
 * [x] Task 3: Comparison with the state of the art
 * [x] Task 4: Color sequences
