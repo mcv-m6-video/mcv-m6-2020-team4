@@ -53,7 +53,7 @@ Mean image
 ![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/mu.png)
 
 Variance image
-![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/sigma.png)
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/simga.png)
 
 * [x] Task 1.2: Gaussian. Discussion
 
