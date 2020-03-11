@@ -88,4 +88,16 @@ mAP
 
 
 * [x] Task 3: Comparison with the state of the art
+
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/graph.png)
+
 * [x] Task 4: Color sequences
+
+|Color Space|Channels|mAP|
+|:-:|:-:|:-:|
+|RGB|R & B|0.51|
+|HSV|H & V|0.20|
+|HSV|H|0.12|
+|YCrCb|Cr & Cb|0.02|
+|CIELAB|A & B|0.03|
+
