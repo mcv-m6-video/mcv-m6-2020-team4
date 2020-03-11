@@ -11,7 +11,12 @@
 ```
 python3 week{i}.py
 ```
-
+## Linl to slides
+|:--------:| :-------:|
+|**Week 1**|[Slides week1](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)|
+|:--------:| :-------:|
+|**Week 2**|[Slides week2](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)|
+|:--------:| :-------:|
 
 ### Week1 
 [Slides week1](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)
@@ -37,7 +42,7 @@ python3 week{i}.py
 
 **PEPN**
 |Seq 45        | Seq 157 |
-|:------------:| -------:|
+|:------------:| :------:|
 |78.560        | 34.047  |
 
 * [x] Task 4: Visual representation optical flow.
@@ -73,7 +78,7 @@ Grid search and finetuning of parameters
 mAP
 
 |Non-Adaptive        | Adaptive |
-|:------------------:| --------:|
+|:------------------:| :-------:|
 |0.286               | 0.564    |
 
 
