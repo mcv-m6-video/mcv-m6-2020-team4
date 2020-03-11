@@ -11,15 +11,14 @@
 ```
 python3 week{i}.py
 ```
-## Linl to slides
-|:--------:| :-------:|
+## Link to slides
+
 |**Week 1**|[Slides week1](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)|
 |:--------:| :-------:|
 |**Week 2**|[Slides week2](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)|
-|:--------:| :-------:|
+
 
 ### Week1 
-[Slides week1](https://docs.google.com/presentation/d/16PFxQ5oOF8AiYmNZvJJbCN2tBN9ZxJ5noHVAtzE7whU/edit?usp=sharing)
 * [x] Task 1: Detection metrics.
 
 ![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/frame_guai.png)
@@ -51,7 +50,7 @@ python3 week{i}.py
 
 
 ### Week2
-[Slides week2]()
+
 * [x] Task 1.1: Gaussian. Implementation
 
 Mean image
