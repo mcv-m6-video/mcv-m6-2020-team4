@@ -2,6 +2,7 @@ import cv2
 import imageio
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+import numpy as np
 
 from data import add_noise_to_bbox
 from metrics.iou import bbox_iou
@@ -114,7 +115,7 @@ def animation_2bb(name, format, gt_bb, bb_cords, frame_path, fps=10, seconds=10,
 def frame_with_2bb(gt_bb, det_bb, frame_path, f_val):
     lst_gt = [item[0] for item in gt_bb]
     lst_nogt = [item[0] for item in det_bb]
-    frame1 = cv2.imread((frame_path + '/frame_{:04d}.jpg').format(f_val))
+    frame1 = cv2.imread((frame_path + '/frame_{:04d}.jpg').format(f_val+1))
 
     args_gt = [i for i, num in enumerate(lst_gt) if num == f_val]
     for ar in args_gt:
@@ -128,11 +129,43 @@ def frame_with_2bb(gt_bb, det_bb, frame_path, f_val):
         cv2.rectangle(frame1, (int(det_bb[ar][3]), int(det_bb[ar][4])),
                       (int(det_bb[ar][5]), int(det_bb[ar][6])), (255, 0, 0), 2)
 
-    frame1 = cv2.resize(frame1, (int(1920 / 4), int(1080 / 4)))
-
-    imageio.imsave('frame{}_with_2bb.png'.format(f_val), frame1)
-
+#    frame1 = cv2.resize(frame1, (int(1920 / 4), int(1080 / 4)))
+    frame1 = cv2.resize(frame1, (int(1920), int(1080)))
+#    imageio.imsave('frame{}_with_2bb.png'.format(f_val), frame1)
+    return frame1
 
 def frames_to_gif(filename, frames):
     frames = frames.astype('uint8')
     imageio.mimsave(filename, frames)
+
+
+
+def animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path):
+    """
+    This function creates an animation of the tracks assigning a different color
+    to eack track. It also draws a number because the gif animation seems to be 
+    changing color for the same track when it is not.    
+    """
+    r = np.random.randint(0, 256, idd, dtype = int)
+    g = np.random.randint(0, 256, idd, dtype = int)
+    b = np.random.randint(0, 256, idd, dtype = int)
+    
+    images = []
+
+    lst_bb = [item[0] for item in det_bb]
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    for f_val in range(ini_frame, end_frame):
+        frame_bb = [det_bb[i] for i, num in enumerate(lst_bb) if num == f_val]
+        frame1 = cv2.imread((frames_path + '/frame_{:04d}.jpg').format(f_val))
+        for i, ft in enumerate(frame_bb):
+            cv2.rectangle(frame1, (int(frame_bb[i][3]), int(frame_bb[i][4])),
+                  (int(frame_bb[i][5]), int(frame_bb[i][6])), 
+                  (int(r[frame_bb[i][2]]), int(g[frame_bb[i][2]]), int(b[frame_bb[i][2]])), 3)
+            cv2.putText(frame1, str(frame_bb[i][2]), (int(frame_bb[i][3]), 
+                        int(frame_bb[i][4]) - 10), font, 0.75, 
+                        (int(r[frame_bb[i][2]]), int(g[frame_bb[i][2]]), int(b[frame_bb[i][2]])), 2, cv2.LINE_AA)
+            
+        frame1 = cv2.resize(frame1, (int(1920 / 2), int(1080 / 2)))
+        images.append(cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB))        
+    imageio.mimsave('tracking2.gif', images)
+    
