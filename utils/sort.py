@@ -80,16 +80,16 @@ class KalmanBoxTracker(object):
     #define constant velocity model
     self.kf = KalmanFilter(dim_x=7, dim_z=4)
     self.kf.F = np.array([[1,0,0,0,1,0,0],[0,1,0,0,0,1,0],[0,0,1,0,0,0,1],[0,0,0,1,0,0,0],
-                         [0,0,0,0,1,0,0],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1]])
-    self.kf.H = np.array([[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0]])
+                         [0,0,0,0,1,0,0],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1]]) # State transition matrix
+    self.kf.H = np.array([[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0]]) #Measurement function
 
-    self.kf.R[2:,2:] *= 10.
+    self.kf.R[2:,2:] *= 10. # Measurement noise matrix
     self.kf.P[4:,4:] *= 1000. #give high uncertainty to the unobservable initial velocities
-    self.kf.P *= 10.
-    self.kf.Q[-1,-1] *= 0.01
+    self.kf.P *= 10. # Current state covariance matrix. Any call to update() or predict() updates this variable.
+    self.kf.Q[-1,-1] *= 0.01 # Process noise matrix
     self.kf.Q[4:,4:] *= 0.01
 
-    self.kf.x[:4] = convert_bbox_to_z(bbox)
+    self.kf.x[:4] = convert_bbox_to_z(bbox) # Current state estimate. Any call to update() or predict() updates this variable.
     self.time_since_update = 0
     self.id = KalmanBoxTracker.count
     KalmanBoxTracker.count += 1
@@ -169,14 +169,18 @@ def associate_detections_to_trackers(detections,trackers,iou_threshold = 0.3):
 
 
 class Sort(object):
-  def __init__(self,max_age=1,min_hits=3):
+  def __init__(self,max_age=1,min_hits=3, model_type = 0):
     """
     Sets key parameters for SORT
+    Model type: if 0 --> constant velocity
+                if 1 --> constant acceleration
     """
     self.max_age = max_age
     self.min_hits = min_hits
     self.trackers = []
     self.frame_count = 0
+    self.model_type = model_type
+
 
   def update(self,dets):
     """
@@ -209,7 +213,10 @@ class Sort(object):
 
     #create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
-        trk = KalmanBoxTracker(dets[i,:])
+        if self.model_type == 0:
+            trk = KalmanBoxTracker(dets[i,:])
+        else:
+            trk = KalmanBoxTracker(dets[i,:])
         self.trackers.append(trk)
     i = len(self.trackers)
     for trk in reversed(self.trackers):

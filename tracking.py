@@ -56,13 +56,13 @@ def tracking_iou(det_bb, video_n_frames):
 #        print(f_val)
     return det_bb, idd
 
-def kalman_filter_tracking(det_bb, video_n_frames):
+def kalman_filter_tracking(det_bb, video_n_frames, model_type):
     """
     This function assigns a track value to an object by using kalman filters.
     It also adjust bounding box coordinates based on tracking information.
     """
     bb_id_updated = []
-    tracker = Sort()
+    tracker = Sort(model_type = model_type)
     for frame_num in range(0,video_n_frames):
         #Get only bb of current frame
         dets_all_info = list(filter(lambda x: x[0] == frame_num, det_bb))
