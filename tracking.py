@@ -39,7 +39,7 @@ def tracking_iou(det_bb, video_n_frames):
                 arg_max = np.argmax(ious)
                 #on the first frame we assign new ids to the objects in the image
                 if np.max(ious) > 0.2:
-                    #for the following frames we have 2 scenarios: 
+                    #for the following frames we have 2 scenarios:
                     # scenario 1: a new object appears into the scene and it has not been labeled
                     if frame_n_bb[j][2] == 0:
                         frame_n_bb[j][2] = idd
@@ -49,12 +49,12 @@ def tracking_iou(det_bb, video_n_frames):
                     # position in the next frame the same label frame_n_bb[j][2] will already
                     # have and id different from 0 assgned
                     else:
-                        frame_n1_bb[arg_max][2] = frame_n_bb[j][2]  
-                          
+                        frame_n1_bb[arg_max][2] = frame_n_bb[j][2]
+
                     frame_n1_bb.pop(arg_max)
                     if len(frame_n1_bb)==0:
-                        break       
-#        print(f_val) 
+                        break
+#        print(f_val)
     det_bb_clean = [det_bb[i] for i, detection in enumerate(det_bb) if detection[2]!=0]
     return det_bb_clean, idd
 
@@ -86,30 +86,30 @@ def tracking_iou(det_bb, video_n_frames):
 #                iou = bbox_iou(frame_n_bb[j][3:7], frame_n1_bb[k][3:7])
 #                ious.append(iou)
 #            arg_max = np.argmax(ious)
-#            
+#
 #            #on the first frame we assign new ids to the objects in the image
 #            if f_val == 0:
 #                frame_n_bb[j][2] = (j+1)
 #                frame_n1_bb[arg_max][2] = (j+1)
 #                idd = idd +1
 #            else:
-#                #for the following frames we have 2 scenarios: 
+#                #for the following frames we have 2 scenarios:
 #                if np.max(ious) > 0.5:
 #                # scenario 1: the object was already in the scene and we need to assign to the
 #                # position in the next frame the same label frame_n_bb[j][2] will already
 #                # have and id different from 0 assgned
-#                    frame_n1_bb[arg_max][2] = frame_n_bb[j][2]  
+#                    frame_n1_bb[arg_max][2] = frame_n_bb[j][2]
 #                    frame_n1_bb.pop(arg_max)
 #                # scenario 2: a new object appears into the scene and it has not been labeled
-#                else:   
+#                else:
 #                    if frame_n_bb[j][2] == 0:
 #                        frame_n_bb[j][2] = idd
 #                        frame_n1_bb[arg_max][2] = idd
-#                        idd = idd +1   
-#            
+#                        idd = idd +1
+#
 #                if len(frame_n1_bb)==0:
-#                    break       
-##        print(f_val) 
+#                    break
+##        print(f_val)
 ##    det_bb_clean = [det_bb[i] for i, detection in enumerate(det_bb) if detection[2]!=0]
 #    return det_bb, idd
 
@@ -129,6 +129,5 @@ def kalman_filter_tracking(det_bb, video_n_frames, model_type):
         trackers = tracker.update(dets)
         #Obtain id and bb in correct format
         for bb_dets, bb_update in zip(dets_all_info, trackers):
-            bb_id_updated.append([bb_dets[0], bb_dets[1], int(bb_update[4]), bb_update[0], bb_update[1], bb_update[2], bb_update[3]])
+            bb_id_updated.append([bb_dets[0], bb_dets[1], int(bb_update[4]), bb_update[0], bb_update[1], bb_update[2], bb_update[3], bb_dets[7]])
     return bb_id_updated
-
