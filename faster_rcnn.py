@@ -5,12 +5,10 @@ import numpy as np
 import torch
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
-from detectron2.engine import DefaultPredictor
+from detectron2.data import DatasetCatalog, build_detection_test_loader, MetadataCatalog
+from detectron2.engine import DefaultPredictor, DefaultTrainer
+from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.structures import BoxMode
-
-from data import filter_gt, read_xml_gt
-from metrics.mAP import calculate_ap
-from utils.visualization import animation_2bb
 
 thing_classes = {
     'car': 0,
@@ -18,7 +16,7 @@ thing_classes = {
 }
 
 
-def get_AICity_dataset(image_path, annot_file):
+def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', train_percent=.25):
     assert os.path.exists(annot_file)
 
     f = open(annot_file, 'r')
@@ -28,7 +26,24 @@ def get_AICity_dataset(image_path, annot_file):
 
     annots = np.array(annots)
 
-    sequence_frames = annots[:, 0].astype('int').max()
+    sequence_frames = np.unique(annots[:, 0].astype('int'))
+    max_train_frames = int(sequence_frames.shape[0] * train_percent)
+
+    if mode == 'first':
+        sequence_frames_train = annots[annots[:, 0].astype(int) <= max_train_frames]
+        sequence_frames_val = annots[annots[:, 0].astype(int) > max_train_frames]
+
+    # random frames
+    # TODO debug for possible bugs
+    else:
+        train_frames = np.random.choice(sequence_frames, max_train_frames, replace=False)
+        mask = np.isin(annots[:, 0].astype(int), train_frames)
+
+        sequence_frames_train = sequence_frames[mask, :]
+        sequence_frames_val = sequence_frames[~mask, :]
+
+    sequence_frames = sequence_frames_train if is_train else sequence_frames_val
+    sequence_frames = sequence_frames[:, 0].astype('int').max()
 
     for n_frame in range(sequence_frames + 1):
         frame_annots = annots[annots[:, 0].astype('int') == n_frame]
@@ -42,7 +57,7 @@ def get_AICity_dataset(image_path, annot_file):
                     "bbox": box.tolist(),
                     "bbox_mode": BoxMode.XYXY_ABS,
                     # "segmentation": [poly],
-                    "category_id": 0,  # bikes too??
+                    "category_id": 0,
                     "iscrowd": 0
                 }
                 objs.append(obj)
@@ -62,16 +77,59 @@ def get_AICity_dataset(image_path, annot_file):
     return dataset
 
 
-def inference(config_file, dataset, process_images=False, scale_factor=0.25, gt=None):
+def train(config_file, image_path, annot_file):
+    train_split = lambda: get_AICity_dataset(image_path, annot_file, is_train=True)
+    test_split = lambda: get_AICity_dataset(image_path, annot_file)
+
+    DatasetCatalog.register("ai_city_train", train_split)
+    MetadataCatalog.get('ai_city_train').set(thing_classes=[k for k in thing_classes.keys()])
+
+    DatasetCatalog.register("ai_city_test", test_split)
+    MetadataCatalog.get('ai_city_test').set(thing_classes=[k for k in thing_classes.keys()])
+
+    cfg = get_cfg()
+    cfg.merge_from_file(model_zoo.get_config_file(config_file))
+    cfg.DATASETS.TRAIN = ("ai_city_train",)
+    cfg.DATASETS.TEST = ()
+    cfg.DATALOADER.NUM_WORKERS = 2
+    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(
+        "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")  # Let training initialize from model zoo
+    cfg.SOLVER.IMS_PER_BATCH = 2
+    cfg.SOLVER.BASE_LR = 0.00025
+    cfg.SOLVER.MAX_ITER = 300
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
+
+    os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
+    trainer = DefaultTrainer(cfg)
+    trainer.resume_or_load(resume=False)
+    trainer.train()
+
+    evaluator = COCOEvaluator("ai_city_test", cfg, False, output_dir="./output/")
+    val_loader = build_detection_test_loader(cfg, "ai_city_test")
+    inference_on_dataset(trainer.model, val_loader, evaluator)
+
+    ims_from_test = [annot['file_name'] for annot in test_split()]
+    det_bb = inference(config_file, ims_from_test, weight="./output/model_final.pth")
+
+    return det_bb
+
+
+def inference(config_file, test_images_filenames, weight=None):
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file(config_file))
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(config_file)
+    if weight is not None:
+        cfg.MODEL.WEIGHTS = weight
+        cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
+    else:
+        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(config_file)
+
     predictor = DefaultPredictor(cfg)
 
     predictions = []
 
-    for image in dataset:
+    for image in test_images_filenames:
         frame = int(image.split("/")[-1].split(".")[0].split("_")[1])
         im = cv2.imread(image)
         out = predictor(im)['instances']
@@ -79,8 +137,10 @@ def inference(config_file, dataset, process_images=False, scale_factor=0.25, gt=
         preds = out.get_fields()['pred_classes']
         scores = out.get_fields()['scores']
 
-        car_boxes = boxes[preds == 2]
-        car_scores = scores[preds == 2]
+        # check if doing inference on coco dataset or fine-tuned one
+        # TODO change to a better way ??
+        car_boxes = boxes[preds == 2] if weight is None else boxes[preds == 0]
+        car_scores = scores[preds == 2] if weight is None else scores[preds == 0]
 
         # adapt preds to calculate ap method
         # frame, str_category, id (fake)
@@ -94,28 +154,8 @@ def inference(config_file, dataset, process_images=False, scale_factor=0.25, gt=
             predictions += preds
         # print(image)
 
-        # if process_images:
-        #     h, w = im.shape[:2]
-        #     dh, dw = int(h * scale_factor), int(w * scale_factor)
-        #     car_boxes.scale(scale_factor, scale_factor)
-        #     resized_boxes = car_boxes.tensor.to('cpu').numpy().tolist()
-        #     im = cv2.resize(im, (dw, dh))
-        #
-        #     for b in resized_boxes:
-        #         b = [int(a) for a in b]
-        #         xy = (b[0], b[1])
-        #         x2y2 = (b[2], b[3])
-        #         cv2.rectangle(im, xy, x2y2, color=(0, 0, 255))
-        #
-        #     # cv2.imshow("im", im)
-        #     # cv2.waitKey(0)
-
     return predictions
 
 
 if __name__ == '__main__':
-    # get_AICity_dataset('/home/devsodin/MCV/M6/mcv-m6-2020-team4/datasets/AICity_data/train/S03/c010/data', '/home/devsodin/MCV/M6/mcv-m6-2020-team4/datasets/AICity_data/train/S03/c010/gt/gt.txt')
-
-    from utils.utils import get_files_from_dir
-
-
+    pass
