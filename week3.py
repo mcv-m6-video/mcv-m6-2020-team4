@@ -15,14 +15,13 @@ def main():
     print("Finished saving")
 
     print("Task 1.1")
-    task11(images_path, gt_annot_file, config_file)
+    #task11(images_path, gt_annot_file, config_file)
 
     print("Task 2.1")
     # task21(frames_path)
     print("Task 2.2")
     model_type = 1  # Constant acceleration
-    # task22("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt", images_path, model_type)
-
+    task22("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt", images_path, model_type)
 
 def task11(images_path, gt_annot_file, config_file):
     files = get_files_from_dir(images_path, 'jpg')
@@ -37,7 +36,6 @@ def task11(images_path, gt_annot_file, config_file):
     print(ap50)
 
     animation_2bb('faster_on_coco', '.gif', gt_bb, preds, images_path, ini=800, )
-
 
 def task21(frames_path):
     det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
