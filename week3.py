@@ -50,6 +50,13 @@ def task21(frames_path):
     ini_frame = 550
     end_frame = 650
 
+
+    det_bb, idd = tracking_iou(det_bb, video_n_frames)
+    #det_bb, idd = tracking_iou(det_bb, 5)
+    ini_frame = 420
+    end_frame = 480
+
+#frame_with_2bb(det_bb, det_bb, frames_path, f_val)
     animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path)
 
 
