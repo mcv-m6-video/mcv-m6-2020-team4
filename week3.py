@@ -1,6 +1,6 @@
 from data import read_detections_file, read_xml_gt, filter_gt
 from data import save_frames, number_of_images_jpg
-from faster_rcnn import inference
+from faster_rcnn import inference, train
 from metrics.mAP import calculate_ap
 from tracking import tracking_iou, kalman_filter_tracking
 from utils.utils import get_files_from_dir
@@ -11,12 +11,14 @@ def main():
     images_path = 'datasets/AICity_data/train/S03/c010/data'
     config_file = "COCO-Detection/faster_rcnn_R_50_FPN_1x.yaml"
     gt_annot_file = 'datasets/ai_challenge_s03_c010-full_annotation.xml'
+    dataset_annot_file = 'datasets/AICity_data/train/S03/c010/gt/gt.txt'
     save_frames(images_path)
     print("Finished saving")
 
     print("Task 1.1")
-    #task11(images_path, gt_annot_file, config_file)
-
+    # task11(images_path, gt_annot_file, config_file)
+    print("Task 1.2")
+    task12(images_path, config_file, dataset_annot_file, gt_annot_file)
     print("Task 2.1")
     # task21(frames_path)
     print("Task 2.2")
@@ -36,6 +38,21 @@ def task11(images_path, gt_annot_file, config_file):
     print(ap50)
 
     animation_2bb('faster_on_coco', '.gif', gt_bb, preds, images_path, ini=800, )
+
+
+def task12(images_path, config_file, dataset_annot_file, gt_annot_file):
+
+    gt_bb = read_xml_gt(gt_annot_file)
+    classes_to_keep = ['car']
+    gt_bb = filter_gt(gt_bb, classes_to_keep)
+
+    det_bb = train(config_file, images_path, dataset_annot_file)
+    ap50 = calculate_ap(det_bb, gt_bb, 0, 2140, mode='area')
+    print(ap50)
+
+    animation_2bb('faster_finetune', '.gif', gt_bb, det_bb, images_path, ini=800, )
+
+
 
 def task21(frames_path):
     det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
