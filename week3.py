@@ -31,7 +31,10 @@ det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_
 video_n_frames = number_of_images_jpg(frames_path)
 
 det_bb, idd = tracking_iou(det_bb, video_n_frames)
-ini_frame = 550
-end_frame = 650
+#det_bb, idd = tracking_iou(det_bb, 5)
+ini_frame = 420
+end_frame = 480
+
+#frame_with_2bb(det_bb, det_bb, frames_path, f_val)
 
 animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path)
