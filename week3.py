@@ -79,7 +79,7 @@ def task22(gt_annot_file, detections_file, frames_path):
     det_bb = read_detections_file(detections_file)
     det_bb = filter_det_confidence(det_bb, threshold = 0.5)
     #Read and filter gt
-    gt_bb = read_xml_gt_options(gt_annot_file, True, False)
+    gt_bb = read_xml_gt_options(gt_annot_file, False, False)
     gt_bb = filter_gt(gt_bb, ["car"])
     #Calculate original ap
     video_n_frames = number_of_images_jpg(frames_path)
