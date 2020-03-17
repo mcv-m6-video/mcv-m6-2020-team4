@@ -169,11 +169,13 @@ def animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path):
         for fr in frame_bb:
             cv2.rectangle(frame1, (int(fr[3]), int(fr[4])),
                   (int(fr[5]), int(fr[6])), 
-                  (int(r[fr[2]]), int(g[fr[2]]), int(b[fr[2]])), 3)
+                  (int(r[fr[2]]), int(g[fr[2]]), int(b[fr[2]])), 2)
             cv2.putText(frame1, str(fr[2]), (int(fr[3]), 
                         int(fr[4]) - 10), font, 0.75, 
                         (int(r[fr[2]]), int(g[fr[2]]), int(b[fr[2]])), 2, cv2.LINE_AA)
 #        frame1 = cv2.resize(frame1, (int(1920 / 2), int(1080 / 2)))
         images.append(cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB))        
-    imageio.mimsave('tracking2.gif', images)
+#    imageio.mimsave('tracking4.gif', images)
+    imageio.mimsave('tracking4.tiff', images)
+    
     

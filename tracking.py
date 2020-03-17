@@ -4,114 +4,91 @@ from metrics.iou import bbox_iou
 from utils.sort import Sort
 
 
-def tracking_iou(det_bb, video_n_frames):
+def remove_overlaps(frame_n_bb):
+    # First we check if there are any overlaped detections and remove them
+    for i in range(0, len(frame_n_bb)):
+        length = len(frame_n_bb)
+        for j in range(i+1, length):
+            if length == j:
+                break
+            iou = bbox_iou(frame_n_bb[i][3:7], frame_n_bb[j][3:7])
+            if iou > 0.9:
+                frame_n_bb.pop(j)
+                length = length - 1
+    return frame_n_bb
+
+
+
+def update_track(det_frame, idd, det_bb, lst_det, frame):
     """
-    This function assigns a track value to an object by assgining the same track
-    as in the frame before. To compute it, it takes the maximum overlaping bounding box from
-    from the frame n+1.
+    Cheecks if a bounding box is already labeled in the past 5 frames.
     """
-    idd = 0
-    lst_det = [item[0] for item in det_bb]
-    for f_val in range(0,video_n_frames-1):
-        frame_n_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == f_val]
-        frame_n1_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == f_val+1]
-        # First we check if there are any overlaped detections and remove them
-        for i in range(0, len(frame_n_bb)):
-            length = len(frame_n_bb)
-            for j in range(i+1, length):
-                if length == j:
-                    break
-                iou = bbox_iou(frame_n_bb[i][3:7], frame_n_bb[j][3:7])
-                if iou > 0.7:
-                    frame_n_bb.pop(j)
-                    length = length - 1
-        #compare the bb from frame n to n+1
-        for j in range(0, len(frame_n_bb)):
-            if f_val == 0:
-                frame_n_bb[j][2] = (j+1)
-#                frame_n1_bb[arg_max][2] = (j+1)
-                idd = idd +1
-            else:
-                ious = []
-                for k in range(0, len(frame_n1_bb)):
-                    iou = bbox_iou(frame_n_bb[j][3:7], frame_n1_bb[k][3:7])
-                    ious.append(iou)
-                arg_max = np.argmax(ious)
-                #on the first frame we assign new ids to the objects in the image
-                if np.max(ious) > 0.2:
-                    #for the following frames we have 2 scenarios: 
-                    # scenario 1: a new object appears into the scene and it has not been labeled
-                    if frame_n_bb[j][2] == 0:
-                        frame_n_bb[j][2] = idd
-                        frame_n1_bb[arg_max][2] = idd
-                        idd = idd +1
-                    # scenario 2: the object was already in the scene and we need to assign to the
-                    # position in the next frame the same label frame_n_bb[j][2] will already
-                    # have and id different from 0 assgned
-                    else:
-                        frame_n1_bb[arg_max][2] = frame_n_bb[j][2]  
-                          
-                    frame_n1_bb.pop(arg_max)
-                    if len(frame_n1_bb)==0:
-                        break       
-#        print(f_val) 
+    n_past_frames = np.min([5,frame])
+    for past_frame in range(frame-n_past_frames, frame):
+        # If the past bb is labeled with 0 it is a removed bb on the remove_overlaps
+        past_frame_bb = [det_bb[i] for i,num in enumerate(lst_det) if (num == past_frame and det_bb[i][2]!=0)]                
+        ious =[]
+        for i_past_frame_bb in past_frame_bb:
+            iou = bbox_iou(det_frame[3:7], i_past_frame_bb[3:7])
+            ious.append(iou)
+            
+        arg_max = np.argmax(ious)
+        if np.max(ious)>=0.4:
+            det_frame[2] = past_frame_bb[arg_max][2]
+            break
+        else:
+            continue
+    # If after checking with the past frames it still does not have a label then
+    # we consider it corresponds to a new track.
+    if det_frame[2] == 0:
+        det_frame[2] = idd
+        idd += 1
+    return det_frame, idd
+
+
+def clean_tracks(det_bb, idd):
+    # A detection still has a 0 label track then it is one of the removed overlaps
     det_bb_clean = [det_bb[i] for i, detection in enumerate(det_bb) if detection[2]!=0]
+    # If a detection lasts less than 5 frames it is not considered as a detection
+    det_bb_clean = sorted(det_bb_clean, key=lambda x: x[2])
+    lst_det = [item[2] for item in det_bb_clean] 
+    new_clean_bb =[]
+    new_id = 1
+    for i in range(1,idd):
+        idd_n = len([ids for ids in lst_det if ids == i])
+        if idd_n<=5:
+            continue
+        else:
+            ids_to_keep = np.where(np.array(lst_det) == i)[0]
+            for id_kept in ids_to_keep:
+                det_bb_clean[id_kept][2] = new_id
+                new_clean_bb.append(det_bb_clean[id_kept])
+            new_id += 1  
+    new_clean_bb = sorted(new_clean_bb, key = lambda x: x[0])
+    return new_clean_bb
+    
+    
+def tracking_iou(det_bb, video_n_frames):
+    idd = 0
+    lst_det = [item[0] for item in det_bb]    
+    
+    for frame in range(0, video_n_frames):
+        # For each frame we get all the bounding boxes
+        frame_n_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == frame]
+        # Remove the overlaping bounding boxes on the same frame
+        frame_n_bb = remove_overlaps(frame_n_bb)
+        
+        for det_frame in frame_n_bb:
+            # For the first frame we label with a new label each bounding box
+            if frame == 0:
+                det_frame[2] = idd
+                idd += 1
+            else:
+                det_frame, idd = update_track(det_frame, idd, det_bb, lst_det, frame)
+    # A detection still has a 0 label track then it is one of the removed overlaps
+    det_bb_clean = clean_tracks(det_bb, idd)        
     return det_bb_clean, idd
 
-#def tracking_iou(det_bb, video_n_frames):
-#    """
-#    This function assigns a track value to an object by assgining the same track
-#    as in the frame before. To compute it, it takes the maximum overlaping bounding box from
-#    from the frame n+1.
-#    """
-#    idd = 0
-#    lst_det = [item[0] for item in det_bb]
-#    for f_val in range(0,video_n_frames-1):
-#        frame_n_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == f_val]
-#        frame_n1_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == f_val+1]
-#        # First we check if there are any overlaped detections and remove them
-#        for i in range(0, len(frame_n_bb)):
-#            length = len(frame_n_bb)
-#            for j in range(i+1, length):
-#                if length == j:
-#                    break
-#                iou = bbox_iou(frame_n_bb[i][3:7], frame_n_bb[j][3:7])
-#                if iou > 0.9:
-#                    frame_n_bb.pop(j)
-#                    length = length - 1
-#        #compare the bb from frame n to n+1
-#        for j in range(0, len(frame_n_bb)):
-#            ious = []
-#            for k in range(0, len(frame_n1_bb)):
-#                iou = bbox_iou(frame_n_bb[j][3:7], frame_n1_bb[k][3:7])
-#                ious.append(iou)
-#            arg_max = np.argmax(ious)
-#            
-#            #on the first frame we assign new ids to the objects in the image
-#            if f_val == 0:
-#                frame_n_bb[j][2] = (j+1)
-#                frame_n1_bb[arg_max][2] = (j+1)
-#                idd = idd +1
-#            else:
-#                #for the following frames we have 2 scenarios: 
-#                if np.max(ious) > 0.5:
-#                # scenario 1: the object was already in the scene and we need to assign to the
-#                # position in the next frame the same label frame_n_bb[j][2] will already
-#                # have and id different from 0 assgned
-#                    frame_n1_bb[arg_max][2] = frame_n_bb[j][2]  
-#                    frame_n1_bb.pop(arg_max)
-#                # scenario 2: a new object appears into the scene and it has not been labeled
-#                else:   
-#                    if frame_n_bb[j][2] == 0:
-#                        frame_n_bb[j][2] = idd
-#                        frame_n1_bb[arg_max][2] = idd
-#                        idd = idd +1   
-#            
-#                if len(frame_n1_bb)==0:
-#                    break       
-##        print(f_val) 
-##    det_bb_clean = [det_bb[i] for i, detection in enumerate(det_bb) if detection[2]!=0]
-#    return det_bb, idd
 
 
 def kalman_filter_tracking(det_bb, video_n_frames, model_type):
@@ -131,4 +108,3 @@ def kalman_filter_tracking(det_bb, video_n_frames, model_type):
         for bb_dets, bb_update in zip(dets_all_info, trackers):
             bb_id_updated.append([bb_dets[0], bb_dets[1], int(bb_update[4]), bb_update[0], bb_update[1], bb_update[2], bb_update[3]])
     return bb_id_updated
-

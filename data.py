@@ -198,6 +198,7 @@ def read_detections_file(path):
     """
     lines = open(path).read().splitlines()
     bb = []
+    new_id = 0
     for l in lines:
         fields = l.split(",")
         test_list = [int(fields[0]) - 1,  # frame
