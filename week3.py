@@ -15,7 +15,6 @@ from utils.visualization import animation_tracks, animation_2bb
 
 
 
-
 def main():
     images_path = 'datasets/AICity_data/train/S03/c010/data'
     config_file = "COCO-Detection/faster_rcnn_R_50_FPN_1x.yaml"
@@ -34,8 +33,16 @@ def main():
 
     task21(images_path, gt_annot_file)
     print("Task 2.2")
-#    model_type = 1 # Constant acceleration
-#    task22("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt", frames_path, model_type)
+    # model_type = 1 # Constant acceleration
+    # task22("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt", frames_path, model_type)
+    # print("Task 2.3")
+    # task23()
+
+
+
+def task23():
+    mm.metrics.idf1()
+
 
 
 
@@ -73,7 +80,7 @@ def task21(frames_path, gt_path):
     #det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
     gt_bb = read_xml_gt_options(gt_path, False, False)
     gt_bb = filter_gt(gt_bb, ['car'])
-    
+
     video_n_frames = number_of_images_jpg(frames_path)
 
     det_bb1, idd = tracking_iou(copy.deepcopy(det_bb), video_n_frames)
