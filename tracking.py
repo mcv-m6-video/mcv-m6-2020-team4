@@ -84,10 +84,12 @@ def tracking_iou(det_bb, video_n_frames):
                 det_frame[2] = idd
                 idd += 1
             else:
+
                 det_frame, idd = update_track(det_frame, idd, det_bb, lst_det, frame)
     # A detection still has a 0 label track then it is one of the removed overlaps
     det_bb_clean = clean_tracks(det_bb, idd)        
     return det_bb_clean, idd
+
 
 
 
@@ -106,5 +108,5 @@ def kalman_filter_tracking(det_bb, video_n_frames, model_type):
         trackers = tracker.update(dets)
         #Obtain id and bb in correct format
         for bb_dets, bb_update in zip(dets_all_info, trackers):
-            bb_id_updated.append([bb_dets[0], bb_dets[1], int(bb_update[4]), bb_update[0], bb_update[1], bb_update[2], bb_update[3]])
+            bb_id_updated.append([bb_dets[0], bb_dets[1], int(bb_update[4]), bb_update[0], bb_update[1], bb_update[2], bb_update[3], bb_dets[7]])
     return bb_id_updated

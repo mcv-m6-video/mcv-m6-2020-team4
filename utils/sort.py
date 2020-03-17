@@ -73,21 +73,38 @@ class KalmanBoxTracker(object):
   tracked objects observed as bbox.
   """
   count = 0
-  def __init__(self,bbox):
+  def __init__(self,bbox, model_type = 0):
     """
     Initialises a tracker using initial bounding box.
     """
-    #define constant velocity model
-    self.kf = KalmanFilter(dim_x=7, dim_z=4)
-    self.kf.F = np.array([[1,0,0,0,1,0,0],[0,1,0,0,0,1,0],[0,0,1,0,0,0,1],[0,0,0,1,0,0,0],
-                         [0,0,0,0,1,0,0],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1]]) # State transition matrix
-    self.kf.H = np.array([[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0]]) #Measurement function
+    self.model_type = model_type
 
-    self.kf.R[2:,2:] *= 10. # Measurement noise matrix
-    self.kf.P[4:,4:] *= 1000. #give high uncertainty to the unobservable initial velocities
-    self.kf.P *= 10. # Current state covariance matrix. Any call to update() or predict() updates this variable.
-    self.kf.Q[-1,-1] *= 0.01 # Process noise matrix
-    self.kf.Q[4:,4:] *= 0.01
+    #define constant velocity model
+    if self.model_type == 0:
+        self.kf = KalmanFilter(dim_x=7, dim_z=4)
+        self.kf.F = np.array([[1,0,0,0,1,0,0],[0,1,0,0,0,1,0],[0,0,1,0,0,0,1],[0,0,0,1,0,0,0],
+                             [0,0,0,0,1,0,0],[0,0,0,0,0,1,0],[0,0,0,0,0,0,1]]) # State transition matrix
+        self.kf.H = np.array([[1,0,0,0,0,0,0],[0,1,0,0,0,0,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0]]) #Measurement function
+
+        self.kf.R[2:,2:] *= 10. # Measurement noise matrix
+        self.kf.P[4:,4:] *= 1000. #give high uncertainty to the unobservable initial velocities
+        self.kf.P *= 10. # Current state covariance matrix. Any call to update() or predict() updates this variable.
+        self.kf.Q[-1,-1] *= 0.01 # Process noise matrix
+        self.kf.Q[4:,4:] *= 0.01
+
+    #define constant acceleration model
+    elif self.model_type == 1:
+        self.kf = KalmanFilter(dim_x=10, dim_z=4)
+        self.kf.F = np.array([[1,0,0,0,1,0,0,1,0,0],[0,1,0,0,0,1,0,0,1,0],[0,0,1,0,0,0,1,0,0,1],[0,0,0,1,0,0,0,0,0,0],
+                             [0,0,0,0,1,0,0,1,0,0],[0,0,0,0,0,1,0,0,1,0],[0,0,0,0,0,0,1,0,0,1], [0,0,0,0,0,0,0,1,0,0],
+                             [0,0,0,0,0,0,0,0,1,0], [0,0,0,0,0,0,0,0,0,1]]) # State transition matrix
+        self.kf.H = np.array([[1,0,0,0,0,0,0,0,0,0],[0,1,0,0,0,0,0,0,0,0],[0,0,1,0,0,0,0,0,0,0],[0,0,0,1,0,0,0,0,0,0]]) #Measurement function
+
+        self.kf.R[2:,2:] *= 10. # Measurement noise matrix
+        self.kf.P[4:,4:] *= 1000. #give high uncertainty to the unobservable initial velocities
+        self.kf.P *= 10. # Current state covariance matrix. Any call to update() or predict() updates this variable.
+        self.kf.Q[-1,-1] *= 0.01 # Process noise matrix
+        self.kf.Q[4:,4:] *= 0.01
 
     self.kf.x[:4] = convert_bbox_to_z(bbox) # Current state estimate. Any call to update() or predict() updates this variable.
     self.time_since_update = 0
@@ -112,14 +129,28 @@ class KalmanBoxTracker(object):
     """
     Advances the state vector and returns the predicted bounding box estimate.
     """
-    if((self.kf.x[6]+self.kf.x[2])<=0):
-      self.kf.x[6] *= 0.0
-    self.kf.predict()
-    self.age += 1
-    if(self.time_since_update>0):
-      self.hit_streak = 0
-    self.time_since_update += 1
-    self.history.append(convert_x_to_bbox(self.kf.x))
+    #Constant velocity model
+    if self.model_type == 0:
+        if((self.kf.x[6]+self.kf.x[2])<=0):
+          self.kf.x[6] *= 0.0
+        self.kf.predict()
+        self.age += 1
+        if(self.time_since_update>0):
+          self.hit_streak = 0
+        self.time_since_update += 1
+        self.history.append(convert_x_to_bbox(self.kf.x))
+
+    #Constant acceleration model
+    elif self.model_type == 1:
+        if((self.kf.x[6]+self.kf.x[2])<=0):
+          self.kf.x[6] *= 0.0
+        self.kf.predict()
+        self.age += 1
+        if(self.time_since_update>0):
+          self.hit_streak = 0
+        self.time_since_update += 1
+        self.history.append(convert_x_to_bbox(self.kf.x))
+
     return self.history[-1]
 
   def get_state(self):
@@ -214,9 +245,9 @@ class Sort(object):
     #create and initialise new trackers for unmatched detections
     for i in unmatched_dets:
         if self.model_type == 0:
-            trk = KalmanBoxTracker(dets[i,:])
+            trk = KalmanBoxTracker(dets[i,:], self.model_type)
         else:
-            trk = KalmanBoxTracker(dets[i,:])
+            trk = KalmanBoxTracker(dets[i,:], self.model_type)
         self.trackers.append(trk)
     i = len(self.trackers)
     for trk in reversed(self.trackers):

@@ -17,7 +17,7 @@ def calc_AP(precision, recall):
     return ap
 
 
-def frame_AP(n_gt, f_det_bb, frame_gt_bb):
+def frame_AP(n_gt, f_det_bb, frame_gt_bb, iou_threshold=0.5):
     tp = []
     precision = []
     recall = []
@@ -33,7 +33,7 @@ def frame_AP(n_gt, f_det_bb, frame_gt_bb):
             ious.append(iou)
 
         arg_max = np.argmax(ious)
-        if ious[arg_max] > 0.5:
+        if ious[arg_max] > iou_threshold:
             frame_gt_bb.pop(arg_max)
             correct = True
 

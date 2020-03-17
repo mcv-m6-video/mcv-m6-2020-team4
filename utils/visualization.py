@@ -118,12 +118,12 @@ def frame_with_2bb(gt_bb, det_bb, frame_path, f_val):
     frame1 = cv2.imread((frame_path + '/frame_{:04d}.jpg').format(f_val+1))
 
     args_gt = [i for i, num in enumerate(lst_gt) if num == f_val]
-    
+
     np.random.seed(34)
     r = np.random.randint(0, 256, len(args_gt), dtype = int)
     g = np.random.randint(0, 256, len(args_gt), dtype = int)
     b = np.random.randint(0, 256, len(args_gt), dtype = int)
-    
+
 #    for ar in args_gt:
 #        # Ground truth bounding box in green
 #        cv2.rectangle(frame1, (int(gt_bb[ar][3]), int(gt_bb[ar][4])),
@@ -133,7 +133,7 @@ def frame_with_2bb(gt_bb, det_bb, frame_path, f_val):
     for i, ar in enumerate(args_nogt):
         # guessed GT in blue
         cv2.rectangle(frame1, (int(det_bb[ar][3]), int(det_bb[ar][4])),
-                      (int(det_bb[ar][5]), int(det_bb[ar][6])), 
+                      (int(det_bb[ar][5]), int(det_bb[ar][6])),
                       (int(r[i]),int(g[i]),int(b[i])), 2)
 
 #    frame1 = cv2.resize(frame1, (int(1920 / 4), int(1080 / 4)))
@@ -151,14 +151,14 @@ def frames_to_gif(filename, frames):
 def animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path):
     """
     This function creates an animation of the tracks assigning a different color
-    to eack track. It also draws a number because the gif animation seems to be 
-    changing color for the same track when it is not.    
+    to eack track. It also draws a number because the gif animation seems to be
+    changing color for the same track when it is not.
     """
     np.random.seed(34)
     r = np.random.randint(0, 256, idd, dtype = int)
     g = np.random.randint(0, 256, idd, dtype = int)
     b = np.random.randint(0, 256, idd, dtype = int)
-    
+
     images = []
 
     lst_bb = [item[0] for item in det_bb]
@@ -177,5 +177,3 @@ def animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path):
         images.append(cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB))        
 #    imageio.mimsave('tracking4.gif', images)
     imageio.mimsave('tracking4.tiff', images)
-    
-    
