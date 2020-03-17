@@ -77,10 +77,11 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
     return dataset
 
 
-def train(config_file, image_path, annot_file):
+def train(config_file, image_path, annot_file, out_filename="results.txt"):
     train_split = lambda: get_AICity_dataset(image_path, annot_file, is_train=True)
     test_split = lambda: get_AICity_dataset(image_path, annot_file)
 
+    DatasetCatalog.clear()
     DatasetCatalog.register("ai_city_train", train_split)
     MetadataCatalog.get('ai_city_train').set(thing_classes=[k for k in thing_classes.keys()])
 
@@ -92,13 +93,13 @@ def train(config_file, image_path, annot_file):
     cfg.DATASETS.TRAIN = ("ai_city_train",)
     cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(
-        "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")  # Let training initialize from model zoo
+    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(config_file)  # Let training initialize from model zoo
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = 0.00025
     cfg.SOLVER.MAX_ITER = 300
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
+    cfg.MODEL.RETINANET.NUM_CLASSES = 1
 
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     trainer = DefaultTrainer(cfg)
@@ -110,12 +111,30 @@ def train(config_file, image_path, annot_file):
     inference_on_dataset(trainer.model, val_loader, evaluator)
 
     ims_from_test = [annot['file_name'] for annot in test_split()]
-    det_bb = inference(config_file, ims_from_test, weight="./output/model_final.pth")
+    det_bb = inference(config_file, ims_from_test, weight="./output/model_final.pth",save_results=True, out_filename=out_filename)
 
     return det_bb
 
 
-def inference(config_file, test_images_filenames, weight=None):
+def remap_preds(preds):
+    remapped = []
+
+    for pred in preds:
+        frame = str(pred[0])
+        x = pred[3]
+        y = pred[4]
+        w = str(pred[5] - x)
+        h = str(pred[6] - y)
+        confidence = str(pred[7])
+        remap = [frame, str(-1), str(x), str(y), w, h, confidence, str(-1), str(-1), str(-1)]
+        remap = ",".join(remap) + "\n"
+        remap
+        remapped.append(remap)
+
+    return remapped
+
+
+def inference(config_file, test_images_filenames, weight=None, save_results=False, out_filename="results.txt"):
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file(config_file))
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model
@@ -128,7 +147,8 @@ def inference(config_file, test_images_filenames, weight=None):
     predictor = DefaultPredictor(cfg)
 
     predictions = []
-
+    # TODO FORMAT frame, -1, xtl, ytl, w, h, confidence, -1,-1,-1
+    save_predictions = []
     for image in test_images_filenames:
         frame = int(image.split("/")[-1].split(".")[0].split("_")[1])
         im = cv2.imread(image)
@@ -152,7 +172,11 @@ def inference(config_file, test_images_filenames, weight=None):
         if preds:
             preds = [prediction_prefix + pred for pred in preds]
             predictions += preds
-        # print(image)
+            if save_results:
+                save_predictions += remap_preds(preds)
+    if save_results:
+        with open(out_filename, 'w') as f:
+            f.writelines(save_predictions)
 
     return predictions
 
