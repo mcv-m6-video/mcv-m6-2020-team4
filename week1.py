@@ -41,7 +41,8 @@ def task1(gt_file):
         miou += frame_miou(frame_det_bb, frame_gt_bb, confidence=False)
 
     miou = miou/last_frame
-
+    print("Noisy GT (Sorted Random): ", calculate_ap(det_bb, gt, 'random'))
+    print("Noisy GT (Sorted by Area): ", calculate_ap(det_bb, gt, 'area'))
 
 
     preds_mask = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
@@ -59,11 +60,13 @@ def task2(gt_file, ini_frame):
     classes_to_keep = ['car']
     gt_bb = filter_gt(gt_bb, classes_to_keep)
 
-    det_bb = generate_noisy_annotations(gt_bb)
-
+#    det_bb = generate_noisy_annotations(gt_bb)
+#    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
+#    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
+    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
     fps = 10
     seconds = 30
-    animation_2bb("file", ".avi", gt_bb, det_bb, "datasets/AICity_data/train/S03/c010/data/", fps, seconds,
+    animation_2bb("bb_frames_yolo", ".gif", gt_bb, det_bb, "datasets/AICity_data/train/S03/c010/data/", fps, seconds,
               ini_frame, int(1920 / 4), int(1080 / 4))
 
     mious = []
@@ -73,10 +76,19 @@ def task2(gt_file, ini_frame):
         frame_det_bb = [det_bb[i] for i, num in enumerate(det_bb) if num[0] == f_val]
         mious.append(frame_miou(frame_det_bb, frame_gt_bb, confidence=False))
 
-
+#    xx = np.arange(ini_frame, ini_frame+int(seconds*fps))
+#    plt.figure()
+#    plt.ylim((0,1))
+#    plt.xlabel('Frame')
+#    plt.ylabel('mIoU')
+#    plt.plot(xx, yolo, label = 'YOLOv3')
+#    plt.plot(xx, mask, label = 'Mask RCNN')
+#    plt.plot(xx, ssd, label = 'SSD')
+#    plt.legend()
+        
     frames = list(range(0, len(mious)))
-    ani = plot_animation(frames, mious, 'Frame', 'mIoU', [0,1], fps)
-    ani.save('test.gif')
+    ani = plot_animation(frames, mious, 'Frame', 'IoU', [0,1], fps)
+    ani.save('iou_yolo.gif')
 
 
 
@@ -114,3 +126,4 @@ def task4(flow, gt):
 
 if __name__ == '__main__':
     main()
+
