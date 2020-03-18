@@ -108,8 +108,8 @@ def task21(gt_annot_file, detections_file, frames_path):
     ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)
     print("Original ap: {}".format(original_ap))
     print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
-    ini_frame = 420
-    end_frame = 580
+    ini_frame = 550
+    end_frame = 650
     animation_tracks(det_bb_max_iou, idd, ini_frame, end_frame, frames_path)
 
 
