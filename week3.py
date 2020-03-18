@@ -21,11 +21,17 @@ def main():
     config_file_retina = "COCO-Detection/retinanet_R_50_FPN_3x.yaml"
     gt_annot_file = 'datasets/ai_challenge_s03_c010-full_annotation.xml'
     dataset_annot_file = 'datasets/AICity_data/train/S03/c010/gt/gt.txt'
-    detections_file = "datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt"
+    detections_file_mask = "datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt"
+    detections_file_ssd = "datasets/AICity_data/train/S03/c010/det/det_ssd512.txt"
+    detections_file_yolo = "datasets/AICity_data/train/S03/c010/det/det_yolo3.txt"
+    detections_file_faster = "datasets/AICity_data/train/S03/c010/det/our_results_coco_faster.txt"
+    detections_file_retina = "datasets/AICity_data/train/S03/c010/det/our_results_coco_retina.txt"
+    detections_file_finetune_faster = "datasets/AICity_data/train/S03/c010/det/our_results_finetune_faster.txt"
+    detections_file_retina = "datasets/AICity_data/train/S03/c010/det/our_results_coco_retina.txt"
     save_frames(images_path)
 
     print("Finished saving")
-
+    """
     print("Task 1.1 faster")
 #    task11(images_path, gt_annot_file, config_file)
     print("Task 1.1 retina")
@@ -38,9 +44,9 @@ def main():
 
     print("Task 2.1")
     task21(gt_annot_file, detections_file, images_path)
+    """
     print("Task 2.2")
-    # model_type = 1 # Constant acceleration
-    # task22("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt", frames_path, model_type)
+    task22(gt_annot_file, detections_file_finetune_faster, images_path)
     # print("Task 2.3")
 #    task23()
 
@@ -49,7 +55,7 @@ def main():
 def task23():
     mm.metrics.idf1()
 
-
+"""
 
 def task11(images_path, gt_annot_file, config_file):
     files = get_files_from_dir(images_path, 'jpg')
@@ -81,8 +87,12 @@ def task12(images_path, config_file, dataset_annot_file, gt_annot_file):
 
     filename_gif ="faster_finetune" if "faster" in config_file else "retina_finetune"
     animation_2bb(filename_gif, '.gif', gt_bb, det_bb, images_path, ini=800, )
+<<<<<<< HEAD
+"""
+=======
 
 
+>>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
 def task21(gt_annot_file, detections_file, frames_path):
     ap_mode = 'area'
     # Read and filter detections
@@ -91,9 +101,13 @@ def task21(gt_annot_file, detections_file, frames_path):
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
+<<<<<<< HEAD
+
+=======
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_coco_faster.txt")
-    
+
     det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_finetune_faster.txt")
+>>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
     det_bb = filter_det_confidence(det_bb, threshold = 0.5)
     #Read and filter gt
     gt_bb = read_xml_gt_options(gt_annot_file, False, False)
@@ -101,11 +115,19 @@ def task21(gt_annot_file, detections_file, frames_path):
 
     video_n_frames = number_of_images_jpg(frames_path)
 
+<<<<<<< HEAD
+    original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)
+=======
     original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode=ap_mode)
+>>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
 
     det_bb_max_iou, idd = tracking_iou(copy.deepcopy(det_bb), video_n_frames)
 
     ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)
+<<<<<<< HEAD
+
+=======
+>>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
     print("Original ap: {}".format(original_ap))
     print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
     ini_frame = 550
@@ -124,13 +146,12 @@ def task22(gt_annot_file, detections_file, frames_path):
     gt_bb = filter_gt(gt_bb, ["car"])
     #Calculate original ap
     video_n_frames = number_of_images_jpg(frames_path)
-    original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)
     # Constant velocity
     det_bb_vel = kalman_filter_tracking(det_bb, video_n_frames, 0)
     # Constant acceleration
     det_bb_acc = kalman_filter_tracking(det_bb, video_n_frames, 1)
     #Print ap results
-    print("Original ap: {}".format(original_ap))
+    print("Original ap: {}".format(calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)))
     print("Ap after tracking with constant velocity: {}".format(calculate_ap(det_bb_vel, gt_bb, 0, video_n_frames, mode = ap_mode)))
     print("Ap after tracking with constant acceleration: {}".format(calculate_ap(det_bb_acc, gt_bb, 0, video_n_frames, mode = ap_mode)))
     #Obtain animation
@@ -138,8 +159,8 @@ def task22(gt_annot_file, detections_file, frames_path):
     max_id_acc = max(det_bb_acc, key=lambda x: x[2])[2]
     ini_frame = 550
     end_frame = 650
-    animation_tracks(det_bb_vel, max_id_vel, ini_frame, end_frame, frames_path)
-    animation_tracks(det_bb_acc, max_id_acc, ini_frame, end_frame, frames_path)
+    #animation_tracks(det_bb_vel, max_id_vel, ini_frame, end_frame, frames_path)
+    #animation_tracks(det_bb_acc, max_id_acc, ini_frame, end_frame, frames_path)
 
 if __name__ == '__main__':
     main()
