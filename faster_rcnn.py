@@ -10,6 +10,8 @@ from detectron2.engine import DefaultPredictor, DefaultTrainer
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.structures import BoxMode
 
+from data import read_xml_gt, filter_gt
+
 thing_classes = {
     'car': 0,
 
@@ -17,16 +19,26 @@ thing_classes = {
 
 
 def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', train_percent=.25):
+
     assert os.path.exists(annot_file)
 
-    f = open(annot_file, 'r')
-    dataset = []
+    gt = read_xml_gt(annot_file)
+    classes_to_keep = ['car']
+    gt = filter_gt(gt, classes_to_keep)
 
-    annots = [l.split(",") for l in f.readlines()]
-
-    annots = np.array(annots)
-
+    annots = np.array(gt)
     sequence_frames = np.unique(annots[:, 0].astype('int'))
+
+
+
+    dataset = []
+    # f = open(annot_file, 'r')
+    #
+    # annots = [l.split(",") for l in f.readlines()]
+    #
+    # annots = np.array(annots)
+    #
+    # sequence_frames = np.unique(annots[:, 0].astype('int'))
     max_train_frames = int(sequence_frames.shape[0] * train_percent)
 
     if mode == 'first':
@@ -36,6 +48,7 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
     # random frames
     # TODO debug for possible bugs
     else:
+        np.random.seed(42)
         train_frames = np.random.choice(sequence_frames, max_train_frames, replace=False)
         mask = np.isin(annots[:, 0].astype(int), train_frames)
 
@@ -51,8 +64,7 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
         if frame_annots.size > 0:
             objs = []
             for annot in frame_annots:
-                box = annot[2:6].astype('int')
-                box[2:] += box[:2]
+                box = annot[3:7].astype('float')
                 obj = {
                     "bbox": box.tolist(),
                     "bbox_mode": BoxMode.XYXY_ABS,
@@ -62,7 +74,7 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
                 }
                 objs.append(obj)
 
-            frame_name = os.path.join(image_path, "frame_{:04d}.jpg".format(n_frame))
+            frame_name = os.path.join(image_path, "frame_{:04d}.jpg".format(n_frame + 1))
             h, w = cv2.imread(frame_name, 0).shape
             frame = {
                 'file_name': frame_name,
@@ -78,8 +90,8 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
 
 
 def train(config_file, image_path, annot_file, out_filename="results.txt"):
-    train_split = lambda: get_AICity_dataset(image_path, annot_file, is_train=True)
-    test_split = lambda: get_AICity_dataset(image_path, annot_file)
+    train_split = lambda: get_AICity_dataset(image_path, annot_file, mode='first', is_train=True)
+    test_split = lambda: get_AICity_dataset(image_path, annot_file, mode='first')
 
     DatasetCatalog.clear()
     DatasetCatalog.register("ai_city_train", train_split)
@@ -96,7 +108,7 @@ def train(config_file, image_path, annot_file, out_filename="results.txt"):
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(config_file)  # Let training initialize from model zoo
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = 0.00025
-    cfg.SOLVER.MAX_ITER = 300
+    cfg.SOLVER.MAX_ITER = 50
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
     cfg.MODEL.RETINANET.NUM_CLASSES = 1
@@ -111,7 +123,7 @@ def train(config_file, image_path, annot_file, out_filename="results.txt"):
     inference_on_dataset(trainer.model, val_loader, evaluator)
 
     ims_from_test = [annot['file_name'] for annot in test_split()]
-    det_bb = inference(config_file, ims_from_test, weight="./output/model_final.pth",save_results=True, out_filename=out_filename)
+    det_bb = inference(config_file, ims_from_test, weight="./output/model_final.pth", save_results=True, out_filename=out_filename)
 
     return det_bb
 
