@@ -18,6 +18,7 @@ from utils.visualization import animation_tracks, animation_2bb
 def main():
     images_path = 'datasets/AICity_data/train/S03/c010/data'
     config_file = "COCO-Detection/faster_rcnn_R_50_FPN_1x.yaml"
+    config_file_retina = "COCO-Detection/retinanet_R_50_FPN_3x.yaml"
     gt_annot_file = 'datasets/ai_challenge_s03_c010-full_annotation.xml'
     dataset_annot_file = 'datasets/AICity_data/train/S03/c010/gt/gt.txt'
     detections_file = "datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt"
@@ -25,11 +26,16 @@ def main():
 
     print("Finished saving")
 
-    print("Task 1.1")
+    # print("Task 1.1 faster")
     # task11(images_path, gt_annot_file, config_file)
-    print("Task 1.2")
-    task12(images_path, config_file, dataset_annot_file, gt_annot_file)
-    print("Task 2.1")
+    # print("Task 1.1 retina")
+    # task11(images_path, gt_annot_file, config_file_retina)
+
+    # print("Task 1.2 faster")
+    # task12(images_path, config_file, dataset_annot_file, gt_annot_file)
+    # print("Task 2.1 retina")
+    task12(images_path, config_file_retina, dataset_annot_file, gt_annot_file)
+
 
     # task21(gt_annot_file, detections_file, images_path)
     print("Task 2.2")
@@ -52,12 +58,14 @@ def task11(images_path, gt_annot_file, config_file):
     classes_to_keep = ['car']
     gt_bb = filter_gt(gt_bb, classes_to_keep)
 
-    preds = inference(config_file, files, True)
+    filename = "our_results_coco_{}.txt".format("faster" if "faster" in config_file else "retina")
+    preds = inference(config_file, files, save_results=True, out_filename=filename)
 
     ap50 = calculate_ap(preds, gt_bb, 0, len(files), mode='area')
     print(ap50)
 
-    animation_2bb('faster_on_coco', '.gif', gt_bb, preds, images_path, ini=800, )
+    filename_gif ="faster_on_coco" if "faster" in config_file else "retina_on_coco"
+    animation_2bb(filename_gif, '.gif', gt_bb, preds, images_path, ini=800, )
 
 
 def task12(images_path, config_file, dataset_annot_file, gt_annot_file):
@@ -66,25 +74,36 @@ def task12(images_path, config_file, dataset_annot_file, gt_annot_file):
     classes_to_keep = ['car']
     gt_bb = filter_gt(gt_bb, classes_to_keep)
 
-    det_bb = train(config_file, images_path, dataset_annot_file)
+    filename = "our_results_finetune_{}.txt".format("faster" if "faster" in config_file else "retina")
+    det_bb = train(config_file, images_path, dataset_annot_file, out_filename=filename)
     ap50 = calculate_ap(det_bb, gt_bb, 0, 2140, mode='area')
     print(ap50)
 
-    animation_2bb('faster_finetune', '.gif', gt_bb, det_bb, images_path, ini=800, )
+    filename_gif ="faster_finetune" if "faster" in config_file else "retina_finetune"
+    animation_2bb(filename_gif, '.gif', gt_bb, det_bb, images_path, ini=800, )
 
 def task21(gt_annot_file, detections_file, frames_path):
     ap_mode = 'area'
-    #Read and filter detections
-    det_bb = read_detections_file(detections_file)
-    det_bb = filter_det_confidence(det_bb, threshold = 0.5)
-    #Read and filter gt
+    # Read and filter detections
+#    det_bb = read_detections_file(detections_file)
+
+#    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
+    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
+#    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
+
+    det_bb = filter_det_confidence(det_bb, threshold=0.5)
+    # Read and filter gt
     gt_bb = read_xml_gt_options(gt_annot_file, False, False)
     gt_bb = filter_gt(gt_bb, ["car"])
 
     video_n_frames = number_of_images_jpg(frames_path)
 
+<<<<<<< HEAD
     original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)
 
+=======
+    original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode=ap_mode)
+>>>>>>> a5abdd8ca20455b01fedf62fd3c90758200ff647
     det_bb_max_iou, idd = tracking_iou(copy.deepcopy(det_bb), video_n_frames)
 
     ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)

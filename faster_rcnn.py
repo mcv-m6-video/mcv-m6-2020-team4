@@ -10,6 +10,8 @@ from detectron2.engine import DefaultPredictor, DefaultTrainer
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.structures import BoxMode
 
+from data import read_xml_gt, filter_gt
+
 thing_classes = {
     'car': 0,
 
@@ -17,16 +19,26 @@ thing_classes = {
 
 
 def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', train_percent=.25):
+
     assert os.path.exists(annot_file)
 
-    f = open(annot_file, 'r')
-    dataset = []
+    gt = read_xml_gt(annot_file)
+    classes_to_keep = ['car']
+    gt = filter_gt(gt, classes_to_keep)
 
-    annots = [l.split(",") for l in f.readlines()]
-
-    annots = np.array(annots)
-
+    annots = np.array(gt)
     sequence_frames = np.unique(annots[:, 0].astype('int'))
+
+
+
+    dataset = []
+    # f = open(annot_file, 'r')
+    #
+    # annots = [l.split(",") for l in f.readlines()]
+    #
+    # annots = np.array(annots)
+    #
+    # sequence_frames = np.unique(annots[:, 0].astype('int'))
     max_train_frames = int(sequence_frames.shape[0] * train_percent)
 
     if mode == 'first':
@@ -36,6 +48,7 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
     # random frames
     # TODO debug for possible bugs
     else:
+        np.random.seed(42)
         train_frames = np.random.choice(sequence_frames, max_train_frames, replace=False)
         mask = np.isin(annots[:, 0].astype(int), train_frames)
 
@@ -51,8 +64,7 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
         if frame_annots.size > 0:
             objs = []
             for annot in frame_annots:
-                box = annot[2:6].astype('int')
-                box[2:] += box[:2]
+                box = annot[3:7].astype('float')
                 obj = {
                     "bbox": box.tolist(),
                     "bbox_mode": BoxMode.XYXY_ABS,
@@ -62,7 +74,7 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
                 }
                 objs.append(obj)
 
-            frame_name = os.path.join(image_path, "frame_{:04d}.jpg".format(n_frame))
+            frame_name = os.path.join(image_path, "frame_{:04d}.jpg".format(n_frame + 1))
             h, w = cv2.imread(frame_name, 0).shape
             frame = {
                 'file_name': frame_name,
@@ -77,10 +89,11 @@ def get_AICity_dataset(image_path, annot_file, is_train=False, mode='first', tra
     return dataset
 
 
-def train(config_file, image_path, annot_file):
-    train_split = lambda: get_AICity_dataset(image_path, annot_file, is_train=True)
-    test_split = lambda: get_AICity_dataset(image_path, annot_file)
+def train(config_file, image_path, annot_file, out_filename="results.txt"):
+    train_split = lambda: get_AICity_dataset(image_path, annot_file, mode='first', is_train=True)
+    test_split = lambda: get_AICity_dataset(image_path, annot_file, mode='first')
 
+    DatasetCatalog.clear()
     DatasetCatalog.register("ai_city_train", train_split)
     MetadataCatalog.get('ai_city_train').set(thing_classes=[k for k in thing_classes.keys()])
 
@@ -96,9 +109,10 @@ def train(config_file, image_path, annot_file):
         "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")  # Let training initialize from model zoo
     cfg.SOLVER.IMS_PER_BATCH = 8
     cfg.SOLVER.BASE_LR = 0.0001
-    cfg.SOLVER.MAX_ITER = 2000
+    cfg.SOLVER.MAX_ITER = 100
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
+    cfg.MODEL.RETINANET.NUM_CLASSES = 1
 
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     trainer = DefaultTrainer(cfg)
@@ -110,12 +124,30 @@ def train(config_file, image_path, annot_file):
     inference_on_dataset(trainer.model, val_loader, evaluator)
 
     ims_from_test = [annot['file_name'] for annot in test_split()]
-    det_bb = inference(config_file, ims_from_test, weight="./output/model_final.pth")
+    det_bb = inference(config_file, ims_from_test, weight="./output/model_final.pth", save_results=True, out_filename=out_filename)
 
     return det_bb
 
 
-def inference(config_file, test_images_filenames, weight=None):
+def remap_preds(preds):
+    remapped = []
+
+    for pred in preds:
+        frame = str(pred[0])
+        x = pred[3]
+        y = pred[4]
+        w = str(pred[5] - x)
+        h = str(pred[6] - y)
+        confidence = str(pred[7])
+        remap = [frame, str(-1), str(x), str(y), w, h, confidence, str(-1), str(-1), str(-1)]
+        remap = ",".join(remap) + "\n"
+        remap
+        remapped.append(remap)
+
+    return remapped
+
+
+def inference(config_file, test_images_filenames, weight=None, save_results=False, out_filename="results.txt"):
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file(config_file))
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model
@@ -128,7 +160,8 @@ def inference(config_file, test_images_filenames, weight=None):
     predictor = DefaultPredictor(cfg)
 
     predictions = []
-
+    # TODO FORMAT frame, -1, xtl, ytl, w, h, confidence, -1,-1,-1
+    save_predictions = []
     for image in test_images_filenames:
         frame = int(image.split("/")[-1].split(".")[0].split("_")[1])
         im = cv2.imread(image)
@@ -152,7 +185,11 @@ def inference(config_file, test_images_filenames, weight=None):
         if preds:
             preds = [prediction_prefix + pred for pred in preds]
             predictions += preds
-        # print(image)
+            if save_results:
+                save_predictions += remap_preds(preds)
+    if save_results:
+        with open(out_filename, 'w') as f:
+            f.writelines(save_predictions)
 
     return predictions
 
