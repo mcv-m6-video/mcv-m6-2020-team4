@@ -33,17 +33,18 @@ def main():
     print("Finished saving")
     """
     print("Task 1.1 faster")
-    task11(images_path, gt_annot_file, config_file)
+#    task11(images_path, gt_annot_file, config_file)
     print("Task 1.1 retina")
-    task11(images_path, gt_annot_file, config_file_retina)
+#    task11(images_path, gt_annot_file, config_file_retina)
 
     print("Task 1.2 faster")
-    task12(images_path, config_file, dataset_annot_file, gt_annot_file)
+#    task12(images_path, config_file, dataset_annot_file, gt_annot_file)
     print("Task 2.1 retina")
-    task12(images_path, config_file_retina, dataset_annot_file, gt_annot_file)
-    """
+#    task12(images_path, config_file_retina, dataset_annot_file, gt_annot_file)
 
-    # task21(gt_annot_file, detections_file, images_path)
+    print("Task 2.1")
+    task21(gt_annot_file, detections_file, images_path)
+    """
     print("Task 2.2")
     task22(gt_annot_file, detections_file_finetune_faster, images_path)
     # print("Task 2.3")
@@ -86,16 +87,27 @@ def task12(images_path, config_file, dataset_annot_file, gt_annot_file):
 
     filename_gif ="faster_finetune" if "faster" in config_file else "retina_finetune"
     animation_2bb(filename_gif, '.gif', gt_bb, det_bb, images_path, ini=800, )
+<<<<<<< HEAD
 """
+=======
+
+
+>>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
 def task21(gt_annot_file, detections_file, frames_path):
     ap_mode = 'area'
-    #Read and filter detections
+    # Read and filter detections
 #    det_bb = read_detections_file(detections_file)
 
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
-    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
+#    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
+<<<<<<< HEAD
 
+=======
+#    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_coco_faster.txt")
+
+    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_finetune_faster.txt")
+>>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
     det_bb = filter_det_confidence(det_bb, threshold = 0.5)
     #Read and filter gt
     gt_bb = read_xml_gt_options(gt_annot_file, False, False)
@@ -103,17 +115,25 @@ def task21(gt_annot_file, detections_file, frames_path):
 
     video_n_frames = number_of_images_jpg(frames_path)
 
+<<<<<<< HEAD
     original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)
+=======
+    original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode=ap_mode)
+>>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
 
     det_bb_max_iou, idd = tracking_iou(copy.deepcopy(det_bb), video_n_frames)
 
     ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)
+<<<<<<< HEAD
 
+=======
+>>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
     print("Original ap: {}".format(original_ap))
     print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
-#    ini_frame = 420
-#    end_frame = 580
-#    animation_tracks(det_bb1, idd, ini_frame, end_frame, frames_path)
+    ini_frame = 420
+    end_frame = 580
+    animation_tracks(det_bb_max_iou, idd, ini_frame, end_frame, frames_path)
+
 
 
 def task22(gt_annot_file, detections_file, frames_path):

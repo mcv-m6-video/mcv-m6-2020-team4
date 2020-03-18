@@ -60,7 +60,7 @@ def calculate_ap(det_bb, gt_bb, ini_frame, last_frame, mode):
         if mode == 'sort':
             frame_det_bb = sorted(frame_det_bb, key=lambda x: x[-1], reverse=True)
             f_det_bb = [item[:-1] for item in frame_det_bb]
-            AP = AP + frame_AP(n_gt, f_det_bb, frame_gt_bb)
+            AP = AP + frame_AP(n_gt, f_det_bb, copy.deepcopy(frame_gt_bb))
         elif mode == 'random':
 
             #Random shuffle
@@ -74,7 +74,7 @@ def calculate_ap(det_bb, gt_bb, ini_frame, last_frame, mode):
         else:
             #Sorted by area
             frame_det_bb = sorted(frame_det_bb, key=lambda x: (x[5]-x[3])*(x[5]-x[3]), reverse=True)
-            AP = AP + frame_AP(n_gt, frame_det_bb, frame_gt_bb)
+            AP = AP + frame_AP(n_gt, copy.deepcopy(frame_det_bb), copy.deepcopy(frame_gt_bb))
 
         y_pred = {det[2]: det[3:-1] for det in frame_det_bb}
         y_true = {gt[2]: gt[3:] for gt in frame_gt_bb}
