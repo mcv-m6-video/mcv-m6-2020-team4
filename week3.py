@@ -98,12 +98,8 @@ def task21(gt_annot_file, detections_file, frames_path):
 
     video_n_frames = number_of_images_jpg(frames_path)
 
-<<<<<<< HEAD
-    original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)
-
-=======
     original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode=ap_mode)
->>>>>>> a5abdd8ca20455b01fedf62fd3c90758200ff647
+
     det_bb_max_iou, idd = tracking_iou(copy.deepcopy(det_bb), video_n_frames)
 
     ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)
