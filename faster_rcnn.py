@@ -91,13 +91,13 @@ def train(config_file, image_path, annot_file):
     cfg.merge_from_file(model_zoo.get_config_file(config_file))
     cfg.DATASETS.TRAIN = ("ai_city_train",)
     cfg.DATASETS.TEST = ()
-    cfg.DATALOADER.NUM_WORKERS = 2
+    cfg.DATALOADER.NUM_WORKERS = 4
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(
         "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")  # Let training initialize from model zoo
-    cfg.SOLVER.IMS_PER_BATCH = 2
-    cfg.SOLVER.BASE_LR = 0.00025
-    cfg.SOLVER.MAX_ITER = 300
-    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
+    cfg.SOLVER.IMS_PER_BATCH = 8
+    cfg.SOLVER.BASE_LR = 0.0001
+    cfg.SOLVER.MAX_ITER = 2000
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
 
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)

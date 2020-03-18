@@ -7,7 +7,7 @@ import copy
 
 from data import read_detections_file, read_xml_gt, filter_gt, read_xml_gt_options, filter_det_confidence
 from data import save_frames, number_of_images_jpg
-#from faster_rcnn import inference, train
+from faster_rcnn import inference, train
 from metrics.mAP import calculate_ap
 from tracking import tracking_iou, kalman_filter_tracking
 from utils.utils import get_files_from_dir
@@ -28,10 +28,10 @@ def main():
     print("Task 1.1")
     # task11(images_path, gt_annot_file, config_file)
     print("Task 1.2")
-    #task12(images_path, config_file, dataset_annot_file, gt_annot_file)
+    task12(images_path, config_file, dataset_annot_file, gt_annot_file)
     print("Task 2.1")
 
-    task21(gt_annot_file, detections_file, images_path)
+    # task21(gt_annot_file, detections_file, images_path)
     print("Task 2.2")
     # model_type = 1 # Constant acceleration
     # task22("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt", frames_path, model_type)
@@ -84,11 +84,11 @@ def task21(gt_annot_file, detections_file, frames_path):
     video_n_frames = number_of_images_jpg(frames_path)
 
     original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)
-    
+
     det_bb_max_iou, idd = tracking_iou(copy.deepcopy(det_bb), video_n_frames)
 
     ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)
-    
+
     print("Original ap: {}".format(original_ap))
     print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
 #    ini_frame = 420
