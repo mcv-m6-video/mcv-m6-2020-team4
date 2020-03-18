@@ -85,13 +85,12 @@ def task12(images_path, config_file, dataset_annot_file, gt_annot_file):
 
 def task21(gt_annot_file, detections_file, frames_path):
     ap_mode = 'area'
-    #Read and filter detections
+    # Read and filter detections
 #    det_bb = read_detections_file(detections_file)
-    
+
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
-    
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_coco_faster.txt")
     
     det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_finetune_faster.txt")
@@ -101,13 +100,12 @@ def task21(gt_annot_file, detections_file, frames_path):
     gt_bb = filter_gt(gt_bb, ["car"])
 
     video_n_frames = number_of_images_jpg(frames_path)
-    
-    _, original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)
-    
+
+    original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode=ap_mode)
+
     det_bb_max_iou, idd = tracking_iou(copy.deepcopy(det_bb), video_n_frames)
 
-    aa, ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)
-    
+    ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)
     print("Original ap: {}".format(original_ap))
     print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
     ini_frame = 420
@@ -145,4 +143,3 @@ def task22(gt_annot_file, detections_file, frames_path):
 
 if __name__ == '__main__':
     main()
-
