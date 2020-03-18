@@ -31,13 +31,15 @@ def update_track(det_frame, idd, det_bb, lst_det, frame):
         for i_past_frame_bb in past_frame_bb:
             iou = bbox_iou(det_frame[3:7], i_past_frame_bb[3:7])
             ious.append(iou)
-            
-        arg_max = np.argmax(ious)
-        if np.max(ious)>=0.4:
-            det_frame[2] = past_frame_bb[arg_max][2]
-            break
-        else:
+        if len(ious)==0:
             continue
+        else:
+            arg_max = np.argmax(ious)
+            if np.max(ious)>=0.4:
+                det_frame[2] = past_frame_bb[arg_max][2]
+                break
+            else:
+                continue
     # If after checking with the past frames it still does not have a label then
     # we consider it corresponds to a new track.
     if det_frame[2] == 0:
