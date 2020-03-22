@@ -1,8 +1,8 @@
 import cv2
+import imageio
 import matplotlib.pyplot as plt
 import numpy as np
-from data import load_flow_data
-import imageio
+
 
 # Taken from https://github.com/tomrunia/OpticalFlow_Visualization
 
@@ -161,36 +161,34 @@ def visualize_flow(flow, suffix="", hsv_format=False, simple=False):
     cv2.waitKey(0)
 
 
-
 def visualize_flow_v2(image_path, of_image_path):
     """
     Read of_image with load_flow_data
     """
-    
-    of_im = imageio.imread(of_image_path)    
+
+    of_im = imageio.imread(of_image_path)
     im = imageio.imread(image_path)
-    
+
     step = 5
     w, h = im.shape[:2]
     x, y = np.meshgrid(np.arange(0, w, step), np.arange(0, h, step))
-    u = of_im[::step, ::step,0]
-    v = of_im[::step, ::step,1]
+    u = of_im[::step, ::step, 0]
+    v = of_im[::step, ::step, 1]
     plt.figure()
-    plt.imshow(im, cmap = 'gray')
+    plt.imshow(im, cmap='gray')
     plt.title("Flow")
-    plt.quiver(y, x, (u-np.mean(u)).T, -(v - np.mean(v)).T, color = 'red')
+    plt.quiver(y, x, (u - np.mean(u)).T, -(v - np.mean(v)).T, color='red')
     plt.show()
-    
-#of_image_path = 'datasets/results/gt/000045_10.png'
-#image_path = '000045_10.png'
-#
-#of_image_path = 'datasets/results/LKflow_000045_10.png'
-#image_path = '000045_10.png'
-#
-#
-#of_image_path = 'datasets/results/gt/000157_10.png'
-#image_path = '000157_10.png'
-#
-#of_image_path = 'datasets/results/LKflow_000157_10.png'
-#image_path = '000157_10.png'
 
+
+def draw_optical_flow(image, motion_vector):
+    step = image.shape[0] // motion_vector.shape[0], image.shape[1] // motion_vector.shape[1]
+    w, h = image.shape[:2]
+    x, y = np.meshgrid(np.arange(0, w, step[0]), np.arange(0, h, step[1]))
+    u = motion_vector[:, :, 0]
+    v = motion_vector[:, :, 1]
+    plt.figure()
+    plt.imshow(image, cmap='gray')
+    plt.title("Flow")
+    plt.quiver(y, x, (u - np.mean(u)).T, -(v - np.mean(v)).T, color='red')
+    plt.show()
