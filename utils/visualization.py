@@ -3,6 +3,8 @@ import imageio
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 from data import add_noise_to_bbox
 from metrics.iou import bbox_iou
@@ -168,12 +170,24 @@ def animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path):
         frame1 = cv2.imread((frames_path + '/frame_{:04d}.jpg').format(f_val+1))
         for fr in frame_bb:
             cv2.rectangle(frame1, (int(fr[3]), int(fr[4])),
-                  (int(fr[5]), int(fr[6])), 
+                  (int(fr[5]), int(fr[6])),
                   (int(r[fr[2]]), int(g[fr[2]]), int(b[fr[2]])), 2)
-            cv2.putText(frame1, str(fr[2]), (int(fr[3]), 
-                        int(fr[4]) - 10), font, 0.75, 
+            cv2.putText(frame1, str(fr[2]), (int(fr[3]),
+                        int(fr[4]) - 10), font, 0.75,
                         (int(r[fr[2]]), int(g[fr[2]]), int(b[fr[2]])), 2, cv2.LINE_AA)
 #        frame1 = cv2.resize(frame1, (int(1920 / 2), int(1080 / 2)))
-        images.append(cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB))        
+        images.append(cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB))
 #    imageio.mimsave('tracking4.gif', images)
     imageio.mimsave('tracking4.tiff', images)
+
+def visualize_3d_plot(X, Y, Z, x_label, y_label, z_label):
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    surf = ax.plot_surface(X, Y,  Z, rstride=1, cstride=1,
+                    cmap='viridis', edgecolor='none')
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_zlabel(z_label)
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    plt.show()
