@@ -103,35 +103,40 @@ def task_21(frames_path):
     unstab = []
     for idx, frame in enumerate(sorted(files)):
         if idx == 0:
-            im_frame = cv2.imread(frame)
+            im_frame = cv2.imread(frame, 0)
             h, w = im_frame.shape[:2]
             h, w = int(h / 4), int(w / 4)
             im_frame = cv2.resize(im_frame, (w, h))
             stab.append(im_frame)
             unstab.append(im_frame)
         else:
-            reference_frame = im_frame
-            im_frame = cv2.imread(frame)
+            im_frame = cv2.imread(frame, 0)
             h, w = im_frame.shape[:2]
             h, w = int(h / 4), int(w / 4)
             im_frame = cv2.resize(im_frame, (w, h))
             unstab.append(im_frame)
 
-            motion_matrix = opt_flow.compute_optical_flow(reference_frame, im_frame)
-            draw_optical_flow(im_frame, motion_matrix[:,:,:2])
+            # motion_matrix = opt_flow.compute_optical_flow(reference_frame, im_frame)
+            motion_matrix = cv2.calcOpticalFlowFarneback(reference_frame, im_frame, None, 0.5, 5, 15, 3, 5, 1.1, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+
+            # draw_optical_flow(im_frame, motion_matrix[:,:,:2])
 
             from scipy.stats import trim_mean, mode
-            # u = trim_mean(motion_matrix[:, :, 0], 0.1, axis=None)
-            # v = trim_mean(motion_matrix[:, :, 1], 0.1, axis=None)
-            # u, v = motion_matrix[:,:, 0].mean(axis=(0,1)), motion_matrix[:,:, 1].mean(axis=(0,1))
-            motion_matrix = motion_matrix[motion_matrix[:, : ,-1] == 1]
-            u,v = mode(motion_matrix[:, 0],axis=None)[0], mode(motion_matrix[:, 1],axis=None)[0]
+            u = trim_mean(motion_matrix[:, :, 0], 0.0, axis=None)
+            v = trim_mean(motion_matrix[:, :, 1], 0.0, axis=None)
+            # # motion_matrix = motion_matrix[motion_matrix[:, : ,-1] == 1]
+            # v, u = mode(motion_matrix[:, 0], axis=None)[0][0], mode(motion_matrix[:, 1],axis=None)[0][0]
 
-            accumulated_flow += np.array([u[0], v[0]])
+            lam = 1
+            accumulated_flow += accumulated_flow * (1 - lam) + np.array([u, v]) * lam
+            print(accumulated_flow)
             transform_matrix = np.array([[1, 0, accumulated_flow[0]], [0, 1, accumulated_flow[1]]], dtype=np.float32)
             stabilized = cv2.warpAffine(im_frame, transform_matrix, (w, h))
 
             stab.append(stabilized)
+
+        reference_frame = im_frame
+
     import imageio
 
     imageio.mimsave("stab.gif", stab)
