@@ -132,7 +132,7 @@ def flow_to_hsv(flow):
     hsv[:, :, 0] = 255
     hsv[:, :, 1] = 255
     mag = np.sqrt(flow[..., 0]**2 + flow[..., 1]**2)
-    
+
     ang = np.arctan2(flow[...,1], flow[...,0]) + np.pi
     hsv[..., 0] = cv2.normalize(ang, None, 0, 179, cv2.NORM_MINMAX)
     hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
@@ -162,19 +162,15 @@ def visualize_flow(flow, suffix="", hsv_format=False, simple=False):
     cv2.waitKey(0)
 
 
-def visualize_flow_v2(image_path, of_image_path):
+def visualize_flow_v2(im, flow):
     """
     Read of_image with load_flow_data
     """
-
-    of_im = imageio.imread(of_image_path)
-    im = imageio.imread(image_path)
-
-    step = 5
+    step = 30
     w, h = im.shape[:2]
     x, y = np.meshgrid(np.arange(0, w, step), np.arange(0, h, step))
-    u = of_im[::step, ::step, 0]
-    v = of_im[::step, ::step, 1]
+    u = flow[::step, ::step, 0]
+    v = flow[::step, ::step, 1]
     plt.figure()
     plt.imshow(im, cmap='gray')
     plt.title("Flow")
@@ -195,4 +191,3 @@ def draw_optical_flow(image, motion_vector):
     plt.title("Flow")
     plt.quiver(y, x, (u - np.mean(u)).T, -(v - np.mean(v)).T, color='red')
     plt.show()
-
