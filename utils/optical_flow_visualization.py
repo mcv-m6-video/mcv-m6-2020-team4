@@ -131,10 +131,11 @@ def flow_to_hsv(flow):
     hsv = np.zeros(flow.shape, dtype=np.uint8)
     hsv[:, :, 0] = 255
     hsv[:, :, 1] = 255
-    mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
-    hsv[..., 0] = ang * 180 / np.pi / 2
+    mag = np.sqrt(flow[..., 0]**2 + flow[..., 1]**2)
+    
+    ang = np.arctan2(flow[...,1], flow[...,0]) + np.pi
+    hsv[..., 0] = cv2.normalize(ang, None, 0, 179, cv2.NORM_MINMAX)
     hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-    hsv[..., 2] = hsv[..., 2] * 10.0  # adjust brightness
 
     return hsv
 
