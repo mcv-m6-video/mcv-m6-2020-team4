@@ -183,6 +183,8 @@ def visualize_flow_v2(image_path, of_image_path):
 
 def draw_optical_flow(image, motion_vector):
     step = image.shape[0] // motion_vector.shape[0], image.shape[1] // motion_vector.shape[1]
+    if step == (1, 1):
+        step = (10, 10)
     w, h = image.shape[:2]
     x, y = np.meshgrid(np.arange(0, w, step[0]), np.arange(0, h, step[1]))
     u = motion_vector[:, :, 0]
