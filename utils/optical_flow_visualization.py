@@ -192,3 +192,4 @@ def draw_optical_flow(image, motion_vector):
     plt.title("Flow")
     plt.quiver(y, x, (u - np.mean(u)).T, -(v - np.mean(v)).T, color='red')
     plt.show()
+
