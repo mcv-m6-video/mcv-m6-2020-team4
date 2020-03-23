@@ -6,7 +6,7 @@ import numpy as np
 from data import save_frames, load_flow_data, process_flow_data
 from metrics.optical_flow import compute_optical_metrics
 from optical_flow import OpticalFlowBlockMatching
-from utils.optical_flow_visualization import visualize_flow, flow_to_color, flow_to_hsv, draw_optical_flow
+from utils.optical_flow_visualization import visualize_flow, flow_to_color, flow_to_hsv, draw_optical_flow, visualize_flow_v2
 from utils.utils import get_files_from_dir
 from utils.visualization import visualize_3d_plot
 
@@ -27,18 +27,26 @@ def main():
     flow_gt = "datasets/results/gt/000157_10.png"
     im1_path = "datasets/results/images/000157_10.png"
     im2_path = "datasets/results/images/000157_11.png"
-    task11(images_path, flow_gt, im1_path, im2_path)
+    #task11(images_path, flow_gt, im1_path, im2_path)
 
 
-def task11(frames_path, flow_gt, im1_path, im2_path):
+def task11(frames_path, flow_gt, im1_path, im2_path, ):
     compute_optical_flow_metrics = True
     grid_search_block_area = False
 
     # Load ground truth
     gt = load_flow_data(flow_gt)
     gt = process_flow_data(gt)
+    """
+    print(gt.shape)
+    for i in range(gt.shape[0]):
+        for j in range(gt.shape[1]):
+            if gt[i,j,2]!=0.:
+                print((i,j))
+                print(gt[i,j,:])
+    """
     # Load frames
-    first_frame = cv2.imread(im2_path)
+    first_frame = cv2.imread(im1_path)
     second_frame = cv2.imread(im2_path)
 
     if compute_optical_flow_metrics:
@@ -53,6 +61,7 @@ def task11(frames_path, flow_gt, im1_path, im2_path):
         print("PSEN: {}".format(psen))
 
         #Visualize the computed optical flow
+        visualize_flow_v2(first_frame, flow)
         hsv_flow = flow_to_hsv(flow)
         print("visualize hsv")
         visualize_flow(hsv_flow, hsv_format=True)
@@ -137,5 +146,6 @@ def task_21(frames_path):
 
 
 if __name__ == '__main__':
-    images_path = 'datasets/dummy/frames'
-    task_21(images_path)
+    main()
+    #images_path = 'datasets/dummy/frames'
+    #task_21(images_path)
