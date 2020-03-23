@@ -92,7 +92,7 @@ def task_21(frames_path):
     files = get_files_from_dir(frames_path, "jpg")
     assert len(files) != 0, "no frames in folder."
 
-    opt_flow = OpticalFlowBlockMatching(type="BW", block_size=16, area_search=16, error_function="SAD",
+    opt_flow = OpticalFlowBlockMatching(type="FW", block_size=16, area_search=16, error_function="SAD",
                                         window_stride=16)
 
     block_size = 16
@@ -117,7 +117,7 @@ def task_21(frames_path):
             unstab.append(im_frame)
 
             # motion_matrix = opt_flow.compute_optical_flow(reference_frame, im_frame)
-            motion_matrix = cv2.calcOpticalFlowFarneback(reference_frame, im_frame, None, 0.5, 5, 15, 3, 5, 1.1, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+            motion_matrix = cv2.calcOpticalFlowFarneback(im_frame, reference_frame,None, 0.5, 5, 15, 3, 5, 1.1, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
 
             # draw_optical_flow(im_frame, motion_matrix[:,:,:2])
 
