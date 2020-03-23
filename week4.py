@@ -29,8 +29,8 @@ def main():
     task11(images_path, flow_gt, im1_path, im2_path)
 
 def task11(frames_path, flow_gt, im1_path, im2_path):
-    compute_optical_flow_metrics = False
-    grid_search_block_area = True
+    compute_optical_flow_metrics = True
+    grid_search_block_area = False
 
     #Load ground truth
     gt = load_flow_data(flow_gt)
@@ -45,18 +45,11 @@ def task11(frames_path, flow_gt, im1_path, im2_path):
         flow = flow_func.compute_optical_flow(first_frame, second_frame)
 
         #Compute metrics
-        msen, psen = compute_optical_metrics(flow, gt, plot_error=True)
+        msen, psen = compute_optical_metrics(flow, gt, plot_error=False)
         print("MSEN: {}".format(msen))
         print("PSEN: {}".format(psen))
 
         #Visualize the computed optical flow
-        print("visualize")
-        visualize_flow(flow, simple=True)
-        print("to color")
-        flow_color = flow_to_color(flow[..., :2], convert_to_bgr=False)
-        print("visualize")
-        visualize_flow(flow_color)
-        print("To hsv")
         hsv_flow = flow_to_hsv(flow)
         print("visualize hsv")
         visualize_flow(hsv_flow, hsv_format=True)
