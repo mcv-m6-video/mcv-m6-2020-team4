@@ -1,6 +1,7 @@
 import os
 import cv2
 import numpy as np
+import copy
 
 from data import save_frames, load_flow_data, process_flow_data
 from optical_flow import OpticalFlowBlockMatching
@@ -9,6 +10,12 @@ from utils.optical_flow_visualization import visualize_flow, flow_to_color, flow
 from utils.cost_functions import compute_error
 from utils.utils import get_files_from_dir
 from utils.visualization import visualize_3d_plot
+from new_tracking import tracking_iou, restore_tracks
+from data import read_detections_file, filter_gt, read_xml_gt_options
+from data import number_of_images_jpg
+from metrics.mAP import calculate_ap
+from utils.visualization import animation_tracks
+
 
 def main():
     images_path = 'datasets/AICity_data/train/S03/c010/data'
@@ -128,6 +135,37 @@ def task_21(frames_path):
 
     print(motions)
 
+
+def task_31():
+    gt_annot_file = 'datasets/ai_challenge_s03_c010-full_annotation.xml'
+    frames_path = 'datasets/AICity_data/train/S03/c010/data'
+    
+    
+    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_finetune_faster.txt")
+    gt_bb = read_xml_gt_options(gt_annot_file, False, False)
+    gt_bb = filter_gt(gt_bb, ["car"])
+    
+    video_n_frames = number_of_images_jpg(frames_path)
+    det_bb_max_iou, idd = tracking_iou(frames_path, copy.deepcopy(det_bb), video_n_frames, mode='of')
+    ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode='sort')
+    
+    print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
+    
+    det_bb_max_iou, idd = tracking_iou(frames_path, copy.deepcopy(det_bb), video_n_frames, mode='other')
+    ap_max_iou = calculate_ap(det_bb_max_iou, copy.deepcopy(gt_bb), 0, video_n_frames, mode='sort')
+    print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
+    
+    
+    new_tracks = restore_tracks(frames_path, det_bb_max_iou)
+    ap_max_iou = calculate_ap(new_tracks, copy.deepcopy(gt_bb), 0, video_n_frames, mode='sort')
+    print("Ap after tracking with maximum IoU and of: {}".format(ap_max_iou))
+    
+    
+        
+    ini_frame = 700
+    end_frame = 900
+    animation_tracks(new_tracks, idd, ini_frame, end_frame, frames_path)
+    
 
 def compute_matching(block, space_search, error_function='sad'):
     block_size = block.shape
