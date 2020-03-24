@@ -47,9 +47,12 @@ class OpticalFlowBlockMatching:
         for i in range(self.block_size//2, reference_image.shape[0] - self.block_size // 2, self.block_size):
             for j in range(self.block_size//2, reference_image.shape[1] - self.block_size // 2, self.block_size):
                 block_ref = reference_image[i - self.block_size // 2:i + self.block_size // 2 + 1, j - self.block_size // 2:j + self.block_size // 2 + 1, :]
-                #optical_flow[i - self.block_size // 2:i + self.block_size // 2 + 1, j - self.block_size // 2:j + self.block_size // 2 + 1, :] = self.find_deviation_matching_block(block_ref, estimated_frame, (i,j))
-                optical_flow[i, j, :] = self.find_deviation_matching_block(block_ref, estimated_frame, (i,j))
-        return optical_flow
+                optical_flow[i - self.block_size // 2:i + self.block_size // 2 + 1, j - self.block_size // 2:j + self.block_size // 2 + 1, :] = self.find_deviation_matching_block(block_ref, estimated_frame, (i,j))
+                #optical_flow[i, j, :] = self.find_deviation_matching_block(block_ref, estimated_frame, (i,j))
+        if self.type == "FW":
+            return optical_flow
+        else:
+            return optical_flow * -1
 
     def find_deviation_matching_block(self, block_ref, estimated_frame, position):
         min_likelihood = float('inf')
@@ -60,11 +63,11 @@ class OpticalFlowBlockMatching:
                 likelihood = self.error_function(block_ref, block_est)
                 if likelihood < min_likelihood:
                     min_likelihood = likelihood
-                    min_direction = (i,j) # TODO: SURE?
+                    min_direction = (i - position[0],j - position[1]) # TODO: SURE?
                 elif likelihood == min_likelihood and np.sum(np.power(min_direction, 2)) > j ** 2 + i ** 2:
-                    min_direction = (i,j) # TODO: SURE?
+                    min_direction = (i - position[0],j - position[1]) # TODO: SURE?
         ret_block = np.ones((self.block_size, self.block_size, 3))
-        ret_block[:, :, 0] = min_direction[0] # TODO: SURE?
-        ret_block[:, :, 1] = min_direction[1] # TODO: SURE?
-        #return ret_block
-        return [min_direction[0], min_direction[1], 1]
+        ret_block[:, :, 0] = min_direction[1]
+        ret_block[:, :, 1] = min_direction[0]
+        return ret_block
+        #return [min_direction[0], min_direction[1], 1]
