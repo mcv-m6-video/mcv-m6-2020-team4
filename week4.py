@@ -1,12 +1,14 @@
 import os
 
 import cv2
+import imageio
 import numpy as np
+from scipy.stats import trim_mean, mode
 
 from data import save_frames, load_flow_data, process_flow_data
 from metrics.optical_flow import compute_optical_metrics
 from optical_flow import OpticalFlowBlockMatching
-from utils.optical_flow_visualization import visualize_flow, flow_to_color, flow_to_hsv, draw_optical_flow, visualize_flow_v2
+from utils.optical_flow_visualization import visualize_flow, flow_to_hsv, visualize_flow_v2
 from utils.utils import get_files_from_dir
 from utils.visualization import visualize_3d_plot
 
@@ -27,7 +29,7 @@ def main():
     flow_gt = "datasets/results/gt/000157_10.png"
     im1_path = "datasets/results/images/000157_10.png"
     im2_path = "datasets/results/images/000157_11.png"
-    #task11(images_path, flow_gt, im1_path, im2_path)
+    # task11(images_path, flow_gt, im1_path, im2_path)
 
 
 def task11(frames_path, flow_gt, im1_path, im2_path, ):
@@ -55,12 +57,12 @@ def task11(frames_path, flow_gt, im1_path, im2_path, ):
                                              window_stride=9)
         flow = flow_func.compute_optical_flow(first_frame, second_frame)
 
-        #Compute metrics
+        # Compute metrics
         msen, psen = compute_optical_metrics(flow, gt, plot_error=False)
         print("MSEN: {}".format(msen))
         print("PSEN: {}".format(psen))
 
-        #Visualize the computed optical flow
+        # Visualize the computed optical flow
         visualize_flow_v2(first_frame, flow)
         hsv_flow = flow_to_hsv(flow)
         print("visualize hsv")
@@ -89,63 +91,85 @@ def task11(frames_path, flow_gt, im1_path, im2_path, ):
         visualize_3d_plot(X, Y, psens, 'Area size', 'Block size', 'PSEN')
 
 
-def task_21(frames_path):
+def task_21(frames_path, optical_flow_func='SSD', stab_mode='trimmed_mean', trimmed_mean_percentage=0.1):
     assert os.path.exists(frames_path)
     files = get_files_from_dir(frames_path, "jpg")
     assert len(files) != 0, "no frames in folder."
 
-    opt_flow = OpticalFlowBlockMatching(type="FW", block_size=16, area_search=16, error_function="SAD",
-                                        window_stride=16)
-
-    block_size = 16
-    search_window = 7
+    opt_flow = OpticalFlowBlockMatching(type="FW", block_size=21, area_search=20, error_function=optical_flow_func,
+                                        window_stride=1)
 
     accumulated_flow = np.zeros(2)
     stab = []
     unstab = []
     for idx, frame in enumerate(sorted(files)):
         if idx == 0:
-            im_frame = cv2.imread(frame, 0)
+            im_frame = cv2.imread(frame)
             h, w = im_frame.shape[:2]
             h, w = int(h / 4), int(w / 4)
             im_frame = cv2.resize(im_frame, (w, h))
-            stab.append(im_frame)
-            unstab.append(im_frame)
+            stab.append(cv2.cvtColor(im_frame, cv2.COLOR_BGR2RGB))
+            unstab.append(cv2.cvtColor(im_frame, cv2.COLOR_BGR2RGB))
         else:
-            im_frame = cv2.imread(frame, 0)
+            im_frame = cv2.imread(frame)
             h, w = im_frame.shape[:2]
             h, w = int(h / 4), int(w / 4)
             im_frame = cv2.resize(im_frame, (w, h))
-            unstab.append(im_frame)
+            unstab.append(cv2.cvtColor(im_frame, cv2.COLOR_BGR2RGB))
 
-            # motion_matrix = opt_flow.compute_optical_flow(reference_frame, im_frame)
-            motion_matrix = cv2.calcOpticalFlowFarneback(im_frame, reference_frame,None, 0.5, 5, 15, 3, 5, 1.1, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+            motion_matrix = opt_flow.compute_optical_flow(reference_frame, im_frame)
+            # motion_matrix = cv2.calcOpticalFlowFarneback(cv2.cvtColor(im_frame, cv2.COLOR_BGR2GRAY),
+            #                                              cv2.cvtColor(reference_frame, cv2.COLOR_BGR2GRAY),
+            #                                              None, 0.5, 5, 15, 3, 5, 1.1, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
 
-            # draw_optical_flow(im_frame, motion_matrix[:,:,:2])
+            if stab_mode == 'mean':
+                u = motion_matrix[:, :, 0].mean()
+                v = motion_matrix[:, :, 1].mean()
+            elif stab_mode == 'trimmed_mean':
+                u = trim_mean(motion_matrix[:, :, 0], trimmed_mean_percentage, axis=None)
+                v = trim_mean(motion_matrix[:, :, 1], trimmed_mean_percentage, axis=None)
+            elif stab_mode == 'median':
+                u, v = np.median(motion_matrix[:, :, 0]), np.median(motion_matrix[:, :, 1])
+            elif stab_mode == 'mode':
+                us, vs = cv2.cartToPolar(motion_matrix[:, :, 0], motion_matrix[:, :, 1])
+                mu, mv = mode(us.ravel())[0], mode(vs.ravel())[0]
+                u, v = cv2.polarToCart(mu, mv)
+                u, v = u[0][0], v[0][0]
+            else:
+                raise NotImplemented("Choose one of implemented modes: mean, trimmed_mean, median")
 
-            from scipy.stats import trim_mean, mode
-            u = trim_mean(motion_matrix[:, :, 0], 0.0, axis=None)
-            v = trim_mean(motion_matrix[:, :, 1], 0.0, axis=None)
-            # # motion_matrix = motion_matrix[motion_matrix[:, : ,-1] == 1]
-            # v, u = mode(motion_matrix[:, 0], axis=None)[0][0], mode(motion_matrix[:, 1],axis=None)[0][0]
-
-            lam = 1
-            accumulated_flow += accumulated_flow * (1 - lam) + np.array([u, v]) * lam
-            print(accumulated_flow)
+            accumulated_flow += np.array([u, v])
             transform_matrix = np.array([[1, 0, accumulated_flow[0]], [0, 1, accumulated_flow[1]]], dtype=np.float32)
             stabilized = cv2.warpAffine(im_frame, transform_matrix, (w, h))
 
-            stab.append(stabilized)
+            stab.append(cv2.cvtColor(stabilized, cv2.COLOR_BGR2RGB))
 
         reference_frame = im_frame
 
-    import imageio
-
-    imageio.mimsave("stab.gif", stab)
-    imageio.mimsave("unstab.gif", unstab)
+    filename = "_{}{}_{}".format(stab_mode, trimmed_mean_percentage if 'trimmed' in stab_mode else "", optical_flow_func)
+    imageio.mimsave("stab/stab{}.gif".format(filename), stab)
+    imageio.mimsave("stab/unstab.gif", unstab)
+    print("yay")
 
 
 if __name__ == '__main__':
-    main()
-    #images_path = 'datasets/dummy/frames'
-    #task_21(images_path)
+    # main()
+    images_path = 'datasets/dummy/frames'
+
+    modes = ['mean', 'trimmed_mean', 'median', 'mode']
+    error_func = ['SSD', 'SAD']
+
+    # for e_fun in error_func:
+    #     for m in modes:
+    #         if m == 'trimmed_mean':
+    #             for trim in range(0, 5):
+    #                 task_21(images_path, optical_flow_func=e_fun, stab_mode=m, trimmed_mean_percentage=trim / 10)
+    #         else:
+    #             task_21(images_path, optical_flow_func=e_fun, stab_mode=m)
+
+    for m in modes:
+        if m == 'trimmed_mean':
+            for trim in range(0, 5):
+                task_21(images_path, stab_mode=m, trimmed_mean_percentage=trim / 10)
+        else:
+            task_21(images_path, stab_mode=m)
