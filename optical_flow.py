@@ -49,7 +49,10 @@ class OpticalFlowBlockMatching:
                 block_ref = reference_image[i - self.block_size // 2:i + self.block_size // 2 + 1, j - self.block_size // 2:j + self.block_size // 2 + 1, :]
                 optical_flow[i - self.block_size // 2:i + self.block_size // 2 + 1, j - self.block_size // 2:j + self.block_size // 2 + 1, :] = self.find_deviation_matching_block(block_ref, estimated_frame, (i,j))
                 #optical_flow[i, j, :] = self.find_deviation_matching_block(block_ref, estimated_frame, (i,j))
-        return optical_flow
+        if self.type == "FW":
+            return optical_flow
+        else:
+            return optical_flow * -1
 
     def find_deviation_matching_block(self, block_ref, estimated_frame, position):
         min_likelihood = float('inf')

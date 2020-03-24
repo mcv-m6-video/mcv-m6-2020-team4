@@ -3,6 +3,7 @@ from tqdm import tqdm
 
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 from data import save_frames, load_flow_data, process_flow_data
 from metrics.optical_flow import compute_optical_metrics
@@ -12,7 +13,7 @@ from utils.utils import get_files_from_dir
 from utils.visualization import visualize_3d_plot
 
 from utils.utils import getVideoArray, getTrans, reconVideo, fix_border, smooth
-from pyflow import pyflow
+#from pyflow import pyflow
 
 def main():
     images_path = 'datasets/AICity_data/train/S03/c010/data'
@@ -30,17 +31,17 @@ def main():
     task11(images_path, s1_flow_gt, s1_im1_path, s1_im2_path, s2_flow_gt, s2_im1_path, s2_im2_path)
 
     print("Task 1.2")
-    task12(im1_path, im2_path, flow_gt, algorithm="pyflow")
-    task12(im1_path, im2_path, flow_gt, algorithm="fb")
+    #task12(im1_path, im2_path, flow_gt, algorithm="pyflow")
+    #task12(im1_path, im2_path, flow_gt, algorithm="fb")
 
     print("Task 2.2")
-    task_22("datasets/video/zoo.mp4", method="point")
-    task_22("datasets/video/zoo.mp4", method="fast")
+    #task_22("datasets/video/zoo.mp4", method="point")
+    #task_22("datasets/video/zoo.mp4", method="fast")
 
 
 def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2_im2_path):
-    compute_optical_flow_metrics = False
-    grid_search_block_area = True
+    compute_optical_flow_metrics = True
+    grid_search_block_area = False
     compare_step = False
 
     # Load ground truth
@@ -59,8 +60,8 @@ def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2
 
     if compute_optical_flow_metrics:
         # Compute optical flow
-        flow_func = OpticalFlowBlockMatching(type="FW", block_size=9, area_search=40, error_function="SSD",
-                                             window_stride=9)
+        flow_func = OpticalFlowBlockMatching(type="BW", block_size=21, area_search=20, error_function="SSD",
+                                             window_stride=1)
         flow = flow_func.compute_optical_flow(first_frame, second_frame)
         flow2 = flow_func.compute_optical_flow(first_frame2, second_frame2)
 
@@ -69,13 +70,12 @@ def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2
         msen2, psen2 = compute_optical_metrics(flow2, gt2, plot_error=False)
         print("Average MSEN: {}".format(msen+msen2/2.0))
         print("Average PSEN: {}".format(psen+psen2/2.0))
-        """
+
         #Visualize the computed optical flow
         visualize_flow_v2(first_frame, flow)
         hsv_flow = flow_to_hsv(flow)
-        print("visualize hsv")
         visualize_flow(hsv_flow, hsv_format=True)
-        """
+
     if grid_search_block_area:
         area_sizes = np.array([20, 40, 60, 80, 100, 120])
         block_sizes = np.array([3, 5, 7, 9, 11, 15, 17, 19, 21])
@@ -90,17 +90,41 @@ def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2
                 flow = flow_func.compute_optical_flow(first_frame, second_frame)
                 msen, psen = compute_optical_metrics(flow, gt, plot_error=False)
                 print("Area size: {:2f} | Block size: {:2f} | msen: {:2f} | psen: {:2f} |".format(area_size, block_size,
-                                                                                                  msen, psen))
+                                                                                  msen, psen))
                 msens[j, i] = msen
                 psens[j, i] = psen
         # Plot msen grid search
         visualize_3d_plot(X, Y, msens, 'Area size', 'Block size', 'MSEN')
         # Plot psen grid search
-        visualize_3d_plot(X, Y, psens, 'Area size', 'Block size', 'PSEN')
-    if compare_step:
-        step_sizes = [1, 3, 5] ## TODO
-        for step_size in step_sizes:
+        visualize_3d_plot(X, Y, psens, 'Area size', 'Block size', 'PEPN')
 
+    if compare_step:
+        step_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+        msens = np.zeros((len(step_sizes), 1))
+        psens = np.zeros((len(step_sizes), 1))
+
+        for i, step_size in enumerate(step_sizes):
+            flow_func = OpticalFlowBlockMatching(type="FW", block_size=21, area_search=20,
+                                                 error_function="SSD", window_stride=step_size)
+            flow = flow_func.compute_optical_flow(first_frame, second_frame)
+            msen, psen = compute_optical_metrics(flow, gt, plot_error=False)
+            print("Step size: {:2f} | msen: {:2f} | psen: {:2f} |".format(step_size, msen, psen))
+            msens[i] = msen
+            psens[i] = psen
+
+        fig = plt.figure()
+        plt.plot(step_sizes, msens,  marker = 'o')
+        plt.xlabel("Step size")
+        plt.ylabel("MSEN")
+        plt.show()
+
+        fig2 = plt.figure()
+        plt.plot(step_sizes, psens,  marker = 'o')
+        plt.xlabel("Step size")
+        plt.ylabel("PEPN")
+        plt.show()
+
+"""
 def task12(im1, im2, flow_gt, algorithm='pyflow'):
 
     img_prev = cv2.imread(im1, cv2.IMREAD_GRAYSCALE)
@@ -138,7 +162,7 @@ def task12(im1, im2, flow_gt, algorithm='pyflow'):
     # print("visualize hsv")
     # visualize_flow(hsv_flow, hsv_format=True)
     msen, psen = compute_optical_metrics(flow, gt, plot_error=False)
-    print(f"Method: {algorithm}, msen: {msen}, psen: {psen}")
+    print("Method: {algorithm}, msen: {msen}, psen: {psen}")
 
 
 
@@ -322,7 +346,7 @@ def point_matching(video_path):
         # frame_out = cv2.resize(frame_out, (w//4, h//4))
         out.write(frame_stabilized)
 
-
+"""
 
 
 
