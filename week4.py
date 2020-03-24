@@ -18,54 +18,53 @@ def main():
     print("Finished saving")
 
     print("Task 1.1")
-    print("Computing flow of 000045_10:")
-    flow_gt = "datasets/results/gt/000045_10.png"
-    im1_path = "datasets/results/images/000045_10.png"
-    im2_path = "datasets/results/images/000045_11.png"
-    task11(images_path, flow_gt, im1_path, im2_path)
-    print("Computing flow of 000157_10:")
-    flow_gt = "datasets/results/gt/000157_10.png"
-    im1_path = "datasets/results/images/000157_10.png"
-    im2_path = "datasets/results/images/000157_11.png"
-    #task11(images_path, flow_gt, im1_path, im2_path)
+    s1_flow_gt = "datasets/results/gt/000045_10.png"
+    s1_im1_path = "datasets/results/images/000045_10.png"
+    s1_im2_path = "datasets/results/images/000045_11.png"
+    s2_flow_gt = "datasets/results/gt/000157_10.png"
+    s2_im1_path = "datasets/results/images/000157_10.png"
+    s2_im2_path = "datasets/results/images/000157_11.png"
+    task11(images_path, s1_flow_gt, s1_im1_path, s1_im2_path, s2_flow_gt, s2_im1_path, s2_im2_path)
 
 
-def task11(frames_path, flow_gt, im1_path, im2_path, ):
-    compute_optical_flow_metrics = True
-    grid_search_block_area = False
+def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2_im2_path):
+    compute_optical_flow_metrics = False
+    grid_search_block_area = True
+    compare_step = False
 
     # Load ground truth
     gt = load_flow_data(flow_gt)
     gt = process_flow_data(gt)
-    """
-    print(gt.shape)
-    for i in range(gt.shape[0]):
-        for j in range(gt.shape[1]):
-            if gt[i,j,2]!=0.:
-                print((i,j))
-                print(gt[i,j,:])
-    """
+
+    gt2 = load_flow_data(s2_flow_gt)
+    gt2 = process_flow_data(gt2)
+
     # Load frames
     first_frame = cv2.imread(im1_path)
     second_frame = cv2.imread(im2_path)
+
+    first_frame2 = cv2.imread(s2_im1_path)
+    second_frame2 = cv2.imread(s2_im2_path)
 
     if compute_optical_flow_metrics:
         # Compute optical flow
         flow_func = OpticalFlowBlockMatching(type="FW", block_size=9, area_search=40, error_function="SSD",
                                              window_stride=9)
         flow = flow_func.compute_optical_flow(first_frame, second_frame)
+        flow2 = flow_func.compute_optical_flow(first_frame2, second_frame2)
 
         #Compute metrics
         msen, psen = compute_optical_metrics(flow, gt, plot_error=False)
-        print("MSEN: {}".format(msen))
-        print("PSEN: {}".format(psen))
-
+        msen2, psen2 = compute_optical_metrics(flow2, gt2, plot_error=False)
+        print("Average MSEN: {}".format(msen+msen2/2.0))
+        print("Average PSEN: {}".format(psen+psen2/2.0))
+        """
         #Visualize the computed optical flow
         visualize_flow_v2(first_frame, flow)
         hsv_flow = flow_to_hsv(flow)
         print("visualize hsv")
         visualize_flow(hsv_flow, hsv_format=True)
-
+        """
     if grid_search_block_area:
         area_sizes = np.array([20, 40, 60, 80, 100, 120])
         block_sizes = np.array([3, 5, 7, 9, 11, 15, 17, 19, 21])
@@ -87,6 +86,11 @@ def task11(frames_path, flow_gt, im1_path, im2_path, ):
         visualize_3d_plot(X, Y, msens, 'Area size', 'Block size', 'MSEN')
         # Plot psen grid search
         visualize_3d_plot(X, Y, psens, 'Area size', 'Block size', 'PSEN')
+
+    if compare_step:
+        step_sizes = [1, 3, 5] ## TODO
+        for step_size in step_sizes:
+
 
 
 def task_21(frames_path):
