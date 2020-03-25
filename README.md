@@ -133,6 +133,41 @@ AP 0.5 car
 ![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week3/idf1.png)
 
 
+### Week4
+
+* [x] Task 1.1: Optical Flow with Block Matching
+
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week4/task11.PNG)
+
+* [x] Task 1.2: Off-the-shelf Optical Flow
+
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week4/task12.PNG)
+
+* [x] Task 2.1: Video stabilization with Block Matching
+
+![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week4/task21.gif)
+
+* [x] Task 2.2: Off-the-shelf Stabilization
+
+* [x] Task 3.1: Object Tracking with Optical Flow
+
+We've tried two different approaches to include the Optical Flow to track.
+
+The first one we tried to translate the detected bounding boxes using the optical flow.  
+
+||Week 3 (Maximum Overlap) |Week 4 (Optical Flow)|
+|:-:|:-:|:-:|
+|mAP|0.911|0.917|
+|IDF1|0.788|0.604|
+
+In the second approach we tried to restore the missed detections
+  
+||Maximum Overlap(improved)|Maximum Overlap (improved) +  Optical Flow|
+|:-:|:-:|:-:|
+|mAP|0.911|0.9291|
+|IDF1|0.919|0.917|
+
+
 
 
 
