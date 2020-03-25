@@ -4,8 +4,9 @@ import cv2
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
-# from pyflow import pyflow
-from tqdm import tqdm
+import copy
+import matplotlib.pyplot as plt
+from scipy.stats import trim_mean, mode
 
 from data import save_frames, load_flow_data, process_flow_data
 from metrics.optical_flow import compute_optical_metrics
@@ -14,6 +15,12 @@ from utils.optical_flow_visualization import visualize_flow, flow_to_hsv, visual
 from utils.utils import getVideoArray, getTrans, reconVideo, fix_border, smooth
 from utils.utils import get_files_from_dir
 from utils.visualization import visualize_3d_plot
+from new_tracking import tracking_iou, restore_tracks
+from data import read_detections_file, filter_gt, read_xml_gt_options
+from data import number_of_images_jpg
+from metrics.mAP import calculate_ap
+from utils.visualization import animation_tracks
+
 
 
 def main():
@@ -54,6 +61,8 @@ def main():
     # task_22("datasets/video/zoo.mp4", method="point")
     # task_22("datasets/video/zoo.mp4", method="fast")
 
+	print("Task 3.1")
+    task31()
 
 def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2_im2_path):
     compute_optical_flow_metrics = True
@@ -343,6 +352,44 @@ def point_matching(video_path):
 
         # frame_out = cv2.resize(frame_out, (w//4, h//4))
         out.write(frame_stabilized)
+
+
+def task_31():
+    gt_annot_file = 'datasets/ai_challenge_s03_c010-full_annotation.xml'
+    frames_path = 'datasets/AICity_data/train/S03/c010/data'
+
+
+    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_finetune_faster.txt")
+    gt_bb = read_xml_gt_options(gt_annot_file, False, False)
+    gt_bb = filter_gt(gt_bb, ["car"])
+
+    video_n_frames = number_of_images_jpg(frames_path)
+    det_bb_max_iou, idd = tracking_iou(frames_path, copy.deepcopy(det_bb), video_n_frames, mode='of')
+    ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode='sort')
+
+    print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
+
+    det_bb_max_iou, idd = tracking_iou(frames_path, copy.deepcopy(det_bb), video_n_frames, mode='other')
+    ap_max_iou = calculate_ap(det_bb_max_iou, copy.deepcopy(gt_bb), 0, video_n_frames, mode='sort')
+    print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
+
+
+    new_tracks = restore_tracks(frames_path, det_bb_max_iou)
+    ap_max_iou = calculate_ap(new_tracks, copy.deepcopy(gt_bb), 0, video_n_frames, mode='sort')
+    print("Ap after tracking with maximum IoU and of: {}".format(ap_max_iou))
+
+
+
+    ini_frame = 700
+    end_frame = 900
+    animation_tracks(new_tracks, idd, ini_frame, end_frame, frames_path)
+
+
+def compute_matching(block, space_search, error_function='sad'):
+    block_size = block.shape
+    window_size = space_search.shape
+
+
 
 
 if __name__ == '__main__':
