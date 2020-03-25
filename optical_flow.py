@@ -1,4 +1,6 @@
+import cv2
 import numpy as np
+from scipy.stats import trim_mean, mode
 
 
 class OpticalFlowBlockMatching:
@@ -71,3 +73,22 @@ class OpticalFlowBlockMatching:
         ret_block[:, :, 1] = min_direction[0]
         return ret_block
         #return [min_direction[0], min_direction[1], 1]
+
+
+def compute_motion_compensation(motion_matrix, stab_mode, trimmed_mean_percentage):
+    if stab_mode == 'mean':
+        u = motion_matrix[:, :, 0].mean()
+        v = motion_matrix[:, :, 1].mean()
+    elif stab_mode == 'trimmed_mean':
+        u = trim_mean(motion_matrix[:, :, 0], trimmed_mean_percentage, axis=None)
+        v = trim_mean(motion_matrix[:, :, 1], trimmed_mean_percentage, axis=None)
+    elif stab_mode == 'median':
+        u, v = np.median(motion_matrix[:, :, 0]), np.median(motion_matrix[:, :, 1])
+    elif stab_mode == 'mode':
+        us, vs = cv2.cartToPolar(motion_matrix[:, :, 0], motion_matrix[:, :, 1])
+        mu, mv = mode(us.ravel())[0], mode(vs.ravel())[0]
+        u, v = cv2.polarToCart(mu, mv)
+        u, v = u[0][0], v[0][0]
+    else:
+        raise NotImplemented("Choose one of implemented modes: mean, trimmed_mean, median")
+    return u, v

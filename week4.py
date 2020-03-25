@@ -1,21 +1,20 @@
 import os
-from tqdm import tqdm
 
 import cv2
 import imageio
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import trim_mean, mode
+import numpy as np
+# from pyflow import pyflow
+from tqdm import tqdm
 
 from data import save_frames, load_flow_data, process_flow_data
 from metrics.optical_flow import compute_optical_metrics
-from optical_flow import OpticalFlowBlockMatching
+from optical_flow import OpticalFlowBlockMatching, compute_motion_compensation
 from utils.optical_flow_visualization import visualize_flow, flow_to_hsv, visualize_flow_v2
+from utils.utils import getVideoArray, getTrans, reconVideo, fix_border, smooth
 from utils.utils import get_files_from_dir
 from utils.visualization import visualize_3d_plot
 
-from utils.utils import getVideoArray, getTrans, reconVideo, fix_border, smooth
-from pyflow import pyflow
 
 def main():
     images_path = 'datasets/AICity_data/train/S03/c010/data'
@@ -30,17 +29,30 @@ def main():
     s2_flow_gt = "datasets/results/gt/000157_10.png"
     s2_im1_path = "datasets/results/images/000157_10.png"
     s2_im2_path = "datasets/results/images/000157_11.png"
-    task11(images_path, s1_flow_gt, s1_im1_path, s1_im2_path, s2_flow_gt, s2_im1_path, s2_im2_path)
+    # task11(images_path, s1_flow_gt, s1_im1_path, s1_im2_path, s2_flow_gt, s2_im1_path, s2_im2_path)
 
     print("Task 1.2")
-    task12(im1_path, im2_path, flow_gt, algorithm="pyflow")
-    task12(im1_path, im2_path, flow_gt, algorithm="fb")
+    # task12(im1_path, im2_path, flow_gt, algorithm="pyflow")
+    # task12(im1_path, im2_path, flow_gt, algorithm="fb")
+
     print("Task 2.1")
-    # task21(images_path)
+    images_path = "datasets/pocho"
+    # modes = ['mean', 'trimmed_mean', 'median', 'mode']
+    # error_func = ['SSD', 'SAD']
+    # for e_fun in error_func:
+    #     for m in modes:
+    #         if m == 'trimmed_mean':
+    #             for trim in range(0, 5):
+    #                 task_21(images_path, optical_flow_func=e_fun, stab_mode=m, trimmed_mean_percentage=trim / 10)
+    #         else:
+    #             task_21(images_path, optical_flow_func=e_fun, stab_mode=m)
+    task_21(images_path, optical_flow_func="SSD", stab_mode="mean")
+    task_21(images_path, optical_flow_func="SSD", stab_mode="mode")
+    task_21(images_path, optical_flow_func="SSD", stab_mode="median")
 
     print("Task 2.2")
-    #task_22("datasets/video/zoo.mp4", method="point")
-    #task_22("datasets/video/zoo.mp4", method="fast")
+    # task_22("datasets/video/zoo.mp4", method="point")
+    # task_22("datasets/video/zoo.mp4", method="fast")
 
 
 def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2_im2_path):
@@ -72,10 +84,10 @@ def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2
         # Compute metrics
         msen, psen = compute_optical_metrics(flow, gt, plot_error=False)
         msen2, psen2 = compute_optical_metrics(flow2, gt2, plot_error=False)
-        print("Average MSEN: {}".format(msen+msen2/2.0))
-        print("Average PSEN: {}".format(psen+psen2/2.0))
+        print("Average MSEN: {}".format(msen + msen2 / 2.0))
+        print("Average PSEN: {}".format(psen + psen2 / 2.0))
 
-        #Visualize the computed optical flow
+        # Visualize the computed optical flow
         visualize_flow_v2(first_frame, flow)
         hsv_flow = flow_to_hsv(flow)
         visualize_flow(hsv_flow, hsv_format=True)
@@ -94,7 +106,7 @@ def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2
                 flow = flow_func.compute_optical_flow(first_frame, second_frame)
                 msen, psen = compute_optical_metrics(flow, gt, plot_error=False)
                 print("Area size: {:2f} | Block size: {:2f} | msen: {:2f} | psen: {:2f} |".format(area_size, block_size,
-                                                                                  msen, psen))
+                                                                                                  msen, psen))
                 msens[j, i] = msen
                 psens[j, i] = psen
         # Plot msen grid search
@@ -117,19 +129,19 @@ def task11(frames_path, flow_gt, im1_path, im2_path, s2_flow_gt, s2_im1_path, s2
             psens[i] = psen
 
         fig = plt.figure()
-        plt.plot(step_sizes, msens,  marker = 'o')
+        plt.plot(step_sizes, msens, marker='o')
         plt.xlabel("Step size")
         plt.ylabel("MSEN")
         plt.show()
 
         fig2 = plt.figure()
-        plt.plot(step_sizes, psens,  marker = 'o')
+        plt.plot(step_sizes, psens, marker='o')
         plt.xlabel("Step size")
         plt.ylabel("PEPN")
         plt.show()
 
-def task12(im1, im2, flow_gt, algorithm='pyflow'):
 
+def task12(im1, im2, flow_gt, algorithm='pyflow'):
     img_prev = cv2.imread(im1, cv2.IMREAD_GRAYSCALE)
     img_next = cv2.imread(im2, cv2.IMREAD_GRAYSCALE)
     gt = load_flow_data(flow_gt)
@@ -138,7 +150,6 @@ def task12(im1, im2, flow_gt, algorithm='pyflow'):
     if algorithm == 'pyflow':
         im1 = np.atleast_3d(img_prev.astype(float) / 255.)
         im2 = np.atleast_3d(img_next.astype(float) / 255.)
-
 
         # taken from https://github.com/pathak22/pyflow/blob/8f8ab9e90845f1b819b3833f995f481cb5d92166/demo.py#L25
         alpha = 0.012
@@ -168,58 +179,40 @@ def task12(im1, im2, flow_gt, algorithm='pyflow'):
     print("Method: {algorithm}, msen: {msen}, psen: {psen}")
 
 
-
-
-
-
-
-
 def task_21(frames_path, optical_flow_func='SSD', stab_mode='trimmed_mean', trimmed_mean_percentage=0.1):
     assert os.path.exists(frames_path)
     files = get_files_from_dir(frames_path, "jpg")
     assert len(files) != 0, "no frames in folder."
 
-    opt_flow = OpticalFlowBlockMatching(type="FW", block_size=21, area_search=20, error_function=optical_flow_func,
+    opt_flow = OpticalFlowBlockMatching(type="BW", block_size=21, area_search=20, error_function=optical_flow_func,
                                         window_stride=1)
 
     accumulated_flow = np.zeros(2)
     stab = []
     unstab = []
-    for idx, frame in enumerate(sorted(files)):
+    for idx, frame in tqdm(enumerate(sorted(files))):
         if idx == 0:
             im_frame = cv2.imread(frame)
             h, w = im_frame.shape[:2]
-            h, w = int(h / 4), int(w / 4)
-            im_frame = cv2.resize(im_frame, (w, h))
+            if w > 480 and h > 480:
+                h, w = int(h / 4), int(w / 4)
+                im_frame = cv2.resize(im_frame, (w, h))
             stab.append(cv2.cvtColor(im_frame, cv2.COLOR_BGR2RGB))
             unstab.append(cv2.cvtColor(im_frame, cv2.COLOR_BGR2RGB))
         else:
             im_frame = cv2.imread(frame)
             h, w = im_frame.shape[:2]
-            h, w = int(h / 4), int(w / 4)
-            im_frame = cv2.resize(im_frame, (w, h))
+            if w > 480 and h > 480:
+                h, w = int(h / 4), int(w / 4)
+                im_frame = cv2.resize(im_frame, (w, h))
             unstab.append(cv2.cvtColor(im_frame, cv2.COLOR_BGR2RGB))
 
-            motion_matrix = opt_flow.compute_optical_flow(reference_frame, im_frame)
-            # motion_matrix = cv2.calcOpticalFlowFarneback(cv2.cvtColor(im_frame, cv2.COLOR_BGR2GRAY),
-            #                                              cv2.cvtColor(reference_frame, cv2.COLOR_BGR2GRAY),
-            #                                              None, 0.5, 5, 15, 3, 5, 1.1, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+            # motion_matrix = opt_flow.compute_optical_flow(im_frame, reference_frame)
+            motion_matrix = cv2.calcOpticalFlowFarneback(cv2.cvtColor(im_frame, cv2.COLOR_BGR2GRAY),
+                                                         cv2.cvtColor(reference_frame, cv2.COLOR_BGR2GRAY),
+                                                         None, 0.5, 5, 15, 3, 5, 1.1, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
 
-            if stab_mode == 'mean':
-                u = motion_matrix[:, :, 0].mean()
-                v = motion_matrix[:, :, 1].mean()
-            elif stab_mode == 'trimmed_mean':
-                u = trim_mean(motion_matrix[:, :, 0], trimmed_mean_percentage, axis=None)
-                v = trim_mean(motion_matrix[:, :, 1], trimmed_mean_percentage, axis=None)
-            elif stab_mode == 'median':
-                u, v = np.median(motion_matrix[:, :, 0]), np.median(motion_matrix[:, :, 1])
-            elif stab_mode == 'mode':
-                us, vs = cv2.cartToPolar(motion_matrix[:, :, 0], motion_matrix[:, :, 1])
-                mu, mv = mode(us.ravel())[0], mode(vs.ravel())[0]
-                u, v = cv2.polarToCart(mu, mv)
-                u, v = u[0][0], v[0][0]
-            else:
-                raise NotImplemented("Choose one of implemented modes: mean, trimmed_mean, median")
+            u, v = compute_motion_compensation(motion_matrix, stab_mode, trimmed_mean_percentage)
 
             accumulated_flow += np.array([u, v])
             transform_matrix = np.array([[1, 0, accumulated_flow[0]], [0, 1, accumulated_flow[1]]], dtype=np.float32)
@@ -229,14 +222,14 @@ def task_21(frames_path, optical_flow_func='SSD', stab_mode='trimmed_mean', trim
 
         reference_frame = im_frame
 
-    filename = "_{}{}_{}".format(stab_mode, trimmed_mean_percentage if 'trimmed' in stab_mode else "", optical_flow_func)
+    filename = "_{}{}_{}".format(stab_mode, trimmed_mean_percentage if 'trimmed' in stab_mode else "",
+                                 optical_flow_func)
     imageio.mimsave("stab/stab{}.gif".format(filename), stab)
     imageio.mimsave("stab/unstab.gif", unstab)
     print("yay")
 
 
 def task_22(video_path, method="point"):
-
     if method == "point":
         point_matching(video_path)
 
@@ -266,11 +259,11 @@ def fast(video_path):
     FILT_SIGMA = 0.2
     FAST = True
     if FILT == "square":
-        filt = (1.0/FILT_WIDTH) * np.ones(FILT_WIDTH)
+        filt = (1.0 / FILT_WIDTH) * np.ones(FILT_WIDTH)
     elif FILT == "gauss":
-        filtx = np.linspace (-3*FILT_SIGMA, 3*FILT_SIGMA, FILT_WIDTH)
-        filt = np.exp(-np.square(filtx) / (2*FILT_SIGMA))
-        filt =  1/(np.sum(filt)) * filt
+        filtx = np.linspace(-3 * FILT_SIGMA, 3 * FILT_SIGMA, FILT_WIDTH)
+        filt = np.exp(-np.square(filtx) / (2 * FILT_SIGMA))
+        filt = 1 / (np.sum(filt)) * filt
 
     videoArr = getVideoArray(video_path)
 
@@ -280,9 +273,7 @@ def fast(video_path):
 
 
 def point_matching(video_path):
-
     cap = cv2.VideoCapture(video_path)
-
 
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -294,9 +285,9 @@ def point_matching(video_path):
 
     _, prev = cap.read()
     prev_gray = cv2.cvtColor(prev, cv2.COLOR_BGR2GRAY)
-    transforms = np.zeros((n_frames-1, 3), np.float32)
+    transforms = np.zeros((n_frames - 1, 3), np.float32)
 
-    for i in tqdm(range(n_frames-2)):
+    for i in tqdm(range(n_frames - 2)):
         prev_pts = cv2.goodFeaturesToTrack(prev_gray, maxCorners=200, qualityLevel=0.01, minDistance=30, blockSize=3)
 
         _, curr = cap.read()
@@ -320,7 +311,6 @@ def point_matching(video_path):
         transforms[i] = [dx, dy, da]
         prev_gray = curr_gray
 
-
     # smooth the trajectory
     trajectory = np.cumsum(transforms, axis=0)
     difference = smooth(trajectory, 5) - trajectory
@@ -329,14 +319,14 @@ def point_matching(video_path):
     # apply transformation to sequence
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    for i in range(n_frames-2):
+    for i in range(n_frames - 2):
         _, frame = cap.read()
 
         # get transformations
 
         dx = transforms_smooth[i, 0]
         dy = transforms_smooth[i, 1]
-        da = transforms_smooth[i ,2]
+        da = transforms_smooth[i, 2]
 
         # build transfromation matrix
         m = np.zeros((2, 3), np.float32)
@@ -355,28 +345,5 @@ def point_matching(video_path):
         out.write(frame_stabilized)
 
 
-
-
-
-
 if __name__ == '__main__':
-    # main()
-    images_path = 'datasets/dummy/frames'
-
-    modes = ['mean', 'trimmed_mean', 'median', 'mode']
-    error_func = ['SSD', 'SAD']
-
-    # for e_fun in error_func:
-    #     for m in modes:
-    #         if m == 'trimmed_mean':
-    #             for trim in range(0, 5):
-    #                 task_21(images_path, optical_flow_func=e_fun, stab_mode=m, trimmed_mean_percentage=trim / 10)
-    #         else:
-    #             task_21(images_path, optical_flow_func=e_fun, stab_mode=m)
-
-    for m in modes:
-        if m == 'trimmed_mean':
-            for trim in range(0, 5):
-                task_21(images_path, stab_mode=m, trimmed_mean_percentage=trim / 10)
-        else:
-            task_21(images_path, stab_mode=m)
+    main()
