@@ -5,14 +5,13 @@ import imageio
 import copy
 
 
-from data import read_detections_file, read_xml_gt, filter_gt, read_xml_gt_options, filter_det_confidence
-from data import save_frames, number_of_images_jpg
+from utils.data import read_detections_file, read_xml_gt, filter_gt, read_xml_gt_options, filter_det_confidence
+from utils.data import save_frames, number_of_images_jpg
 #from faster_rcnn import inference, train
 from metrics.mAP import calculate_ap
-from tracking import tracking_iou, kalman_filter_tracking
+from tracking.tracking import tracking_iou, kalman_filter_tracking
 from utils.utils import get_files_from_dir
 from utils.visualization import animation_tracks, animation_2bb
-
 
 
 def main():
@@ -55,7 +54,6 @@ def main():
 def task23():
     mm.metrics.idf1()
 
-"""
 
 def task11(images_path, gt_annot_file, config_file):
     files = get_files_from_dir(images_path, 'jpg')
@@ -87,12 +85,8 @@ def task12(images_path, config_file, dataset_annot_file, gt_annot_file):
 
     filename_gif ="faster_finetune" if "faster" in config_file else "retina_finetune"
     animation_2bb(filename_gif, '.gif', gt_bb, det_bb, images_path, ini=800, )
-<<<<<<< HEAD
-"""
-=======
 
 
->>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
 def task21(gt_annot_file, detections_file, frames_path):
     ap_mode = 'area'
     # Read and filter detections
@@ -101,13 +95,9 @@ def task21(gt_annot_file, detections_file, frames_path):
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
-<<<<<<< HEAD
-
-=======
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_coco_faster.txt")
 
     det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_finetune_faster.txt")
->>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
     det_bb = filter_det_confidence(det_bb, threshold = 0.5)
     #Read and filter gt
     gt_bb = read_xml_gt_options(gt_annot_file, False, False)
@@ -115,19 +105,12 @@ def task21(gt_annot_file, detections_file, frames_path):
 
     video_n_frames = number_of_images_jpg(frames_path)
 
-<<<<<<< HEAD
     original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode = ap_mode)
-=======
-    original_ap = calculate_ap(det_bb, gt_bb, 0, video_n_frames, mode=ap_mode)
->>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
 
     det_bb_max_iou, idd = tracking_iou(copy.deepcopy(det_bb), video_n_frames)
 
     ap_max_iou = calculate_ap(det_bb_max_iou, gt_bb, 0, video_n_frames, mode=ap_mode)
-<<<<<<< HEAD
-
-=======
->>>>>>> a5db47e3112fa2a60b702584ca68635e946840c5
+    
     print("Original ap: {}".format(original_ap))
     print("Ap after tracking with maximum IoU: {}".format(ap_max_iou))
     ini_frame = 550

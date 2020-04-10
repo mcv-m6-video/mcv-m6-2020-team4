@@ -1,5 +1,5 @@
-from data import load_annots, filter_annots
-from data import read_detections_file, read_xml_gt, filter_gt, generate_noisy_annotations, load_flow_data, \
+from utils.data import load_annots, filter_annots
+from utils.data import read_detections_file, read_xml_gt, filter_gt, generate_noisy_annotations, load_flow_data, \
     process_flow_data
 from metrics.iou import frame_miou
 from metrics.mAP import calculate_ap
@@ -7,7 +7,7 @@ from metrics.optical_flow import compute_optical_metrics
 from utils.optical_flow_visualization import visualize_flow, flow_to_color, flow_to_hsv
 from utils.visualization import animate_iou, animation_2bb, plot_animation
 import numpy as np
-
+#%%
 
 def main():
     print("Task 1")
@@ -63,10 +63,11 @@ def task2(gt_file, ini_frame):
 #    det_bb = generate_noisy_annotations(gt_bb)
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_mask_rcnn.txt")
 #    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_ssd512.txt")
-    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
+#    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/det_yolo3.txt")
+    det_bb = read_detections_file("datasets/AICity_data/train/S03/c010/det/our_results_finetune_faster.txt")
     fps = 10
     seconds = 30
-    animation_2bb("bb_frames_yolo", ".gif", gt_bb, det_bb, "datasets/AICity_data/train/S03/c010/data/", fps, seconds,
+    animation_2bb("bb_frames_our_faster", ".gif", gt_bb, det_bb, "datasets/AICity_data/train/S03/c010/data/", fps, seconds,
               ini_frame, int(1920 / 4), int(1080 / 4))
 
     mious = []
@@ -76,19 +77,22 @@ def task2(gt_file, ini_frame):
         frame_det_bb = [det_bb[i] for i, num in enumerate(det_bb) if num[0] == f_val]
         mious.append(frame_miou(frame_det_bb, frame_gt_bb, confidence=False))
 
-#    xx = np.arange(ini_frame, ini_frame+int(seconds*fps))
-#    plt.figure()
-#    plt.ylim((0,1))
-#    plt.xlabel('Frame')
-#    plt.ylabel('mIoU')
-#    plt.plot(xx, yolo, label = 'YOLOv3')
-#    plt.plot(xx, mask, label = 'Mask RCNN')
-#    plt.plot(xx, ssd, label = 'SSD')
-#    plt.legend()
+    xx = np.arange(ini_frame, ini_frame+int(seconds*fps))
+    plt.figure()
+    plt.ylim((0,1))
+    plt.xlabel('Frame')
+    plt.ylabel('mIoU')
+##    plt.plot(xx, yolo, label = 'YOLOv3')
+##    plt.plot(xx, mask, label = 'Mask R-CNN')
+##    plt.plot(xx, ssd, label = 'SSD')
+    plt.plot(xx, retina, label = 'RetinaNet')      
+    plt.plot(xx, faster, label = 'Faster R-CNN')    
+    plt.plot(xx, our_faster, label = 'Faster R-CNN (Fine tuned)')
+    plt.legend()
         
     frames = list(range(0, len(mious)))
     ani = plot_animation(frames, mious, 'Frame', 'IoU', [0,1], fps)
-    ani.save('iou_yolo.gif')
+    ani.save('iou_our_faster.gif')
 
 
 

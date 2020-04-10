@@ -6,7 +6,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-from data import add_noise_to_bbox
+from utils.data import add_noise_to_bbox
 from metrics.iou import bbox_iou
 
 
@@ -141,8 +141,8 @@ def frame_with_2bb(gt_bb, det_bb, frame_path, f_val):
 #    frame1 = cv2.resize(frame1, (int(1920 / 4), int(1080 / 4)))
 #    frame1 = cv2.resize(frame1, (int(1920), int(1080)))
     frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
-    imageio.imsave('frame{}_with_2bb.png'.format(f_val), frame1)
-#    return frame1
+#    imageio.imsave('frame{}_with_2bb.png'.format(f_val), frame1)
+    return frame1
 
 def frames_to_gif(filename, frames):
     frames = frames.astype('uint8')
@@ -167,7 +167,7 @@ def animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path):
     font = cv2.FONT_HERSHEY_SIMPLEX
     for f_val in range(ini_frame, end_frame):
         frame_bb = [det_bb[i] for i, num in enumerate(lst_bb) if num == f_val]
-        frame1 = cv2.imread((frames_path + '/frame_{:04d}.jpg').format(f_val+1))
+        frame1 = cv2.imread((frames_path + '/frame_{:04d}.jpg').format(f_val))
         for fr in frame_bb:
             cv2.rectangle(frame1, (int(fr[3]), int(fr[4])),
                   (int(fr[5]), int(fr[6])),
@@ -178,7 +178,7 @@ def animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path):
 #        frame1 = cv2.resize(frame1, (int(1920 / 2), int(1080 / 2)))
         images.append(cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB))
 #    imageio.mimsave('tracking4.gif', images)
-    imageio.mimsave('tracking4.tiff', images)
+    imageio.mimsave('track_lala.tiff', images)
 
 def visualize_3d_plot(X, Y, Z, x_label, y_label, z_label):
     fig = plt.figure()

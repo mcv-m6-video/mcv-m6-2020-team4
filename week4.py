@@ -8,19 +8,18 @@ import copy
 import matplotlib.pyplot as plt
 from scipy.stats import trim_mean, mode
 
-from data import save_frames, load_flow_data, process_flow_data
+from utils.data import save_frames, load_flow_data, process_flow_data
 from metrics.optical_flow import compute_optical_metrics
-from optical_flow import OpticalFlowBlockMatching, compute_motion_compensation
+from tracking.optical_flow import OpticalFlowBlockMatching, compute_motion_compensation
 from utils.optical_flow_visualization import visualize_flow, flow_to_hsv, visualize_flow_v2
 from utils.utils import getVideoArray, getTrans, reconVideo, fix_border, smooth
 from utils.utils import get_files_from_dir
 from utils.visualization import visualize_3d_plot
-from new_tracking import tracking_iou, restore_tracks
-from data import read_detections_file, filter_gt, read_xml_gt_options
-from data import number_of_images_jpg
+from tracking.new_tracking import tracking_iou, restore_tracks
+from utils.data import read_detections_file, filter_gt, read_xml_gt_options
+from utils.data import number_of_images_jpg
 from metrics.mAP import calculate_ap
 from utils.visualization import animation_tracks
-
 
 
 def main():

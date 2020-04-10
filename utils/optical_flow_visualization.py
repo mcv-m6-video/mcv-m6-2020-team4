@@ -145,7 +145,8 @@ def visualize_flow(flow, suffix="", hsv_format=False, simple=False):
         rgb = cv2.cvtColor(flow, cv2.COLOR_HSV2RGB)
         cv2.imshow("Angle" + suffix, flow[..., 0])
         cv2.imshow("Magnitude" + suffix, flow[..., 2])
-        cv2.imshow("Flow" + suffix, rgb)
+        cv2.imwrite("cv.png", rgb)
+        
 
     elif simple:
         mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
