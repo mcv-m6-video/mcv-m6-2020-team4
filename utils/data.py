@@ -212,8 +212,7 @@ def read_gt_txt(path):
                      float(fields[2]),  # xTopLeft
                      float(fields[3]),  # yTopLeft
                      float(fields[4]) + float(fields[2]),  # width + xTopLeft
-                     float(fields[5]) + float(fields[3]),  # height + yTopLeft
-                     float(fields[6])]  # confidence
+                     float(fields[5]) + float(fields[3])]  # height + yTopLeft
         bb.append(test_list)
     return bb
 

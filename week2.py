@@ -2,16 +2,15 @@ import cv2
 import matplotlib.pylab as plt
 import numpy as np
 
-from bgModels import bg_model, remove_bg, bg_estimation, fg_segmentation_to_boxes, denoise_bg
-from data import read_xml_gt_options
-from data import save_frames, number_of_images_jpg, filter_gt
+from utils.bgModels import bg_model, remove_bg, bg_estimation, fg_segmentation_to_boxes, denoise_bg
+from utils.data import read_xml_gt_options
+from utils.data import save_frames, number_of_images_jpg, filter_gt
 from metrics.mAP import calculate_ap
 from opt import parse_args
 from utils.visualization import animation_2bb
 from glob import glob
 from utils.utils import get_files_from_dir
 from utils.visualization import animation_2bb, frames_to_gif
-
 
 
 def main():
