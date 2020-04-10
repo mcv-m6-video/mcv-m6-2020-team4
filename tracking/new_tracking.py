@@ -32,7 +32,7 @@ def update_track(det_frame, idd, det_bb, lst_det, frame):
     or in the first 5 frames.
     """
     
-    n_past_frames = np.min([5,frame])
+    n_past_frames = np.min([2,frame])
     for past_frame in range(frame-n_past_frames, frame):
         # If the past bb is labeled with 0 it is a removed bb on the remove_overlaps
         past_frame_bb = [det_bb[i] for i,num in enumerate(lst_det) if (num == past_frame and det_bb[i][2]!=0)]                
@@ -46,6 +46,7 @@ def update_track(det_frame, idd, det_bb, lst_det, frame):
             arg_max = np.argmax(ious)
             if np.max(ious)>=0.4:
                 det_frame[2] = past_frame_bb[arg_max][2]
+                past_frame_bb.pop(arg_max)
                 break
             else:
                 continue
@@ -65,6 +66,7 @@ def update_track(det_frame, idd, det_bb, lst_det, frame):
             arg_max = np.argmax(ious)
             if np.max(ious)>=0.4:
                 det_frame[2] = bg_frame_bb[arg_max][2]
+                bg_frame_bb.pop(arg_max)
                 break
             else:
                 continue    
@@ -158,13 +160,13 @@ def tracking_iou(frames_path, det_bb, video_n_frames, mode):
     idd = 0
     lst_det = [item[0] for item in det_bb]    
     
-    for frame in range(0, video_n_frames):
+    for frame in range(1, video_n_frames+1):
         # For each frame we get all the bounding boxes
         frame_n_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == frame]
         # Remove the overlaping bounding boxes on the same frame
         frame_n_bb = remove_overlaps(frame_n_bb)
         
-        if frame > 0 and mode == 'of':
+        if frame > 1 and mode == 'of':
             #past frame
             first_frame = cv2.imread((frames_path + '/frame_{:04d}.jpg').format(frame))
             first_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
@@ -178,7 +180,7 @@ def tracking_iou(frames_path, det_bb, video_n_frames, mode):
                 
         for det_frame in frame_n_bb:
             # For the first frame we label with a new label each bounding box
-            if frame == 0:
+            if frame == 1:
                 det_frame[2] = idd
                 idd += 1
             else:
