@@ -80,7 +80,7 @@ Denoising method
 
 * [x] Task 2.1: Adaptive modeling 
 
-Grid search and finetuning of parameters
+Grid search and finetuning of parameters:
 
 ![](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Week2/2_1.PNG)
 
