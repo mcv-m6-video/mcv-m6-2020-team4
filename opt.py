@@ -16,5 +16,6 @@ def parse_args_week5():
     parser.add_argument('--detector', default="MaskR-CNN", type=str, choices=["MaskR-CNN", "YOLO", "SSD"], help='Detector to obtain the car detections')
     parser.add_argument('--trackingMethod', default="MaxOverlap", type=str, choices=["MaxOverlap", "Kalman"], help='Method used for the tracking')
     parser.add_argument('--postprocessing', default="None", type=str, choices=["None", "RemoveParked"], help='Postprocessing applied after the tracking')
+    parser.add_argument('--visualization', default=0, type=int, choices=[0, 1], help='Store animation of the tracking')
 
     return parser.parse_args()

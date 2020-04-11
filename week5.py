@@ -6,8 +6,9 @@ from utils.data import read_detections_file, filter_gt, read_gt_txt, filter_det_
 from tracking.new_tracking import tracking_iou
 from tracking.tracking import kalman_filter_tracking
 from metrics.mAP import calculate_ap
-from utils.postprocessing import clean_tracks
+from utils.postprocessing import clean_tracks, remove_parked
 from opt import parse_args_week5
+from utils.visualization import animation_tracks, animation_2bb
 
 def main():
     opt = parse_args_week5()
@@ -15,12 +16,12 @@ def main():
 
     if opt.task == 1:
         print("Starting task 1")
-        task1(opt.detector, opt.trackingMethod, opt.postprocessing)
+        task1(opt.detector, opt.trackingMethod, opt.postprocessing, opt.visualization)
 
     elif opt.task == 2:
         print("Starting task2")
 
-def task1(detector, tracking_method, postprocessing):
+def task1(detector, tracking_method, postprocessing, visualization):
     #Read gt
     gt_annot_file = 'datasets/AICity_data/train/S03/c010/gt/gt.txt'
     gt_bb = read_gt_txt(gt_annot_file)
@@ -47,13 +48,22 @@ def task1(detector, tracking_method, postprocessing):
     print("Tracking finished")
 
     #Postprocessing
-    det_bb_clean = clean_tracks(det_bb_tracking, id_max)
+    det_bb_clean = clean_tracks(copy.deepcopy(det_bb_tracking), id_max)
     if postprocessing == "RemoveParked":
-        print("TODO: remove parked")
-        print("Postprocessing finished")
+        det_bb_clean = remove_parked(copy.deepcopy(det_bb_clean), id_max, threshold = 3.0)
+    print("Postprocessing finished")
     #Results
-    ap = calculate_ap(det_bb_tracking, copy.deepcopy(gt_bb), 0, video_n_frames, mode='sort')
+    ap = calculate_ap(det_bb_clean, copy.deepcopy(gt_bb), 0, video_n_frames, mode='sort')
     print("Average precision: {}".format(ap))
+
+    #Create animation if required
+    if visualization:
+        ini_frame = 550
+        end_frame = 650
+        frames_path = 'datasets/AICity_data/train/S03/c010/data'
+        #animation_2bb("trial", '.gif', gt_bb, det_bb_clean, frames_path, fps=10, seconds=10, ini=0, width=480, height=270)
+        animation_tracks(det_bb_clean, id_max, ini_frame, end_frame, frames_path)
+        print("Animation stored")
 
 if __name__ == '__main__':
     main()
