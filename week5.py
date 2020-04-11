@@ -6,6 +6,7 @@ from utils.data import read_detections_file, filter_gt, read_gt_txt, filter_det_
 from tracking.new_tracking import tracking_iou
 from tracking.tracking import kalman_filter_tracking
 from metrics.mAP import calculate_ap
+from utils.postprocessing import clean_tracks
 from opt import parse_args_week5
 
 def main():
@@ -39,12 +40,14 @@ def task1(detector, tracking_method, postprocessing):
     frames_path = 'datasets/AICity_data/train/S03/c010/data'
     video_n_frames = number_of_images_jpg(frames_path)
     if tracking_method == "MaxOverlap":
-        det_bb_tracking, idd = tracking_iou(frames_path, copy.deepcopy(det_bb), video_n_frames, mode='other')
+        det_bb_tracking, id_max = tracking_iou(frames_path, copy.deepcopy(det_bb), video_n_frames, mode='other')
     elif tracking_method == "Kalman":
         det_bb_tracking = kalman_filter_tracking(copy.deepcopy(det_bb), video_n_frames, 0)
+        id_max = max([v[2] for v in  det_bb_tracking])
     print("Tracking finished")
 
     #Postprocessing
+    det_bb_clean = clean_tracks(det_bb_tracking, id_max)
     if postprocessing == "RemoveParked":
         print("TODO: remove parked")
         print("Postprocessing finished")

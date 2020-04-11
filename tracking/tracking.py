@@ -26,7 +26,7 @@ def update_track(det_frame, idd, det_bb, lst_det, frame):
     n_past_frames = np.min([5,frame])
     for past_frame in range(frame-n_past_frames, frame):
         # If the past bb is labeled with 0 it is a removed bb on the remove_overlaps
-        past_frame_bb = [det_bb[i] for i,num in enumerate(lst_det) if (num == past_frame and det_bb[i][2]!=0)]                
+        past_frame_bb = [det_bb[i] for i,num in enumerate(lst_det) if (num == past_frame and det_bb[i][2]!=0)]
         ious =[]
         for i_past_frame_bb in past_frame_bb:
             iou = bbox_iou(det_frame[3:7], i_past_frame_bb[3:7])
@@ -53,7 +53,7 @@ def clean_tracks(det_bb, idd):
     det_bb_clean = [det_bb[i] for i, detection in enumerate(det_bb) if detection[2]!=0]
     # If a detection lasts less than 5 frames it is not considered as a detection
     det_bb_clean = sorted(det_bb_clean, key=lambda x: x[2])
-    lst_det = [item[2] for item in det_bb_clean] 
+    lst_det = [item[2] for item in det_bb_clean]
     new_clean_bb =[]
     new_id = 1
     for i in range(1,idd):
@@ -65,21 +65,21 @@ def clean_tracks(det_bb, idd):
             for id_kept in ids_to_keep:
                 det_bb_clean[id_kept][2] = new_id
                 new_clean_bb.append(det_bb_clean[id_kept])
-            new_id += 1  
+            new_id += 1
     new_clean_bb = sorted(new_clean_bb, key = lambda x: x[0])
     return new_clean_bb
-    
-    
+
+
 def tracking_iou(det_bb, video_n_frames):
     idd = 0
-    lst_det = [item[0] for item in det_bb]    
-    
+    lst_det = [item[0] for item in det_bb]
+
     for frame in range(0, video_n_frames):
         # For each frame we get all the bounding boxes
         frame_n_bb = [det_bb[i] for i, num in enumerate(lst_det) if num == frame]
         # Remove the overlaping bounding boxes on the same frame
         frame_n_bb = remove_overlaps(frame_n_bb)
-        
+
         for det_frame in frame_n_bb:
             # For the first frame we label with a new label each bounding box
             if frame == 0:
@@ -89,7 +89,7 @@ def tracking_iou(det_bb, video_n_frames):
 
                 det_frame, idd = update_track(det_frame, idd, det_bb, lst_det, frame)
     # A detection still has a 0 label track then it is one of the removed overlaps
-    det_bb_clean = clean_tracks(det_bb, idd)        
+    det_bb_clean = clean_tracks(det_bb, idd)
     return det_bb_clean, idd
 
 
