@@ -177,8 +177,8 @@ def animation_tracks(det_bb, idd, ini_frame, end_frame, frames_path):
                         (int(r[fr[2]]), int(g[fr[2]]), int(b[fr[2]])), 2, cv2.LINE_AA)
 #        frame1 = cv2.resize(frame1, (int(1920 / 2), int(1080 / 2)))
         images.append(cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB))
-#    imageio.mimsave('tracking4.gif', images)
-    imageio.mimsave('track_lala.tiff', images)
+    imageio.mimsave('tracking4.gif', images)
+#    imageio.mimsave('track_lala.tiff', images)
 
 def visualize_3d_plot(X, Y, Z, x_label, y_label, z_label):
     fig = plt.figure()

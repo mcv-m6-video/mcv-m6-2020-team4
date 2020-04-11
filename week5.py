@@ -50,7 +50,7 @@ def task1(detector, tracking_method, postprocessing, visualization):
     #Postprocessing
     det_bb_clean = clean_tracks(copy.deepcopy(det_bb_tracking), id_max)
     if postprocessing == "RemoveParked":
-        det_bb_clean = remove_parked(copy.deepcopy(det_bb_clean), id_max, threshold = 3.0)
+        det_bb_clean = remove_parked(copy.deepcopy(det_bb_clean), id_max, threshold = 5.5)
     print("Postprocessing finished")
     #Results
     ap = calculate_ap(det_bb_clean, copy.deepcopy(gt_bb), 0, video_n_frames, mode='sort')
@@ -61,7 +61,6 @@ def task1(detector, tracking_method, postprocessing, visualization):
         ini_frame = 550
         end_frame = 650
         frames_path = 'datasets/AICity_data/train/S03/c010/data'
-        #animation_2bb("trial", '.gif', gt_bb, det_bb_clean, frames_path, fps=10, seconds=10, ini=0, width=480, height=270)
         animation_tracks(det_bb_clean, id_max, ini_frame, end_frame, frames_path)
         print("Animation stored")
 

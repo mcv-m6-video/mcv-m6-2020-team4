@@ -25,7 +25,7 @@ def clean_tracks(det_bb, idd):
     new_clean_bb = sorted(new_clean_bb, key = lambda x: x[0])
     return new_clean_bb
 
-def remove_parked(det_bb, idd, threshold = 2.0):
+def remove_parked(det_bb, idd, threshold = 5.5):
     """
     Remove the parked cars. Cars are detected as parked if the std of the centroid
     of its position accross frames is lower than a threshold.
