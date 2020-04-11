@@ -2,7 +2,7 @@ import os
 import cv2
 import copy
 
-from utils.data import read_detections_file, filter_gt, read_xml_gt_options, filter_det_confidence, number_of_images_jpg
+from utils.data import read_detections_file, filter_gt, read_gt_txt, filter_det_confidence, number_of_images_jpg
 from tracking.new_tracking import tracking_iou
 from tracking.tracking import kalman_filter_tracking
 from metrics.mAP import calculate_ap
@@ -20,10 +20,9 @@ def main():
         print("Starting task2")
 
 def task1(detector, tracking_method, postprocessing):
-    #Read and filter gt
-    gt_annot_file = 'datasets/ai_challenge_s03_c010-full_annotation.xml'
-    gt_bb = read_xml_gt_options(gt_annot_file, False, False)
-    gt_bb = filter_gt(gt_bb, ["car"])
+    #Read gt
+    gt_annot_file = 'datasets/AICity_data/train/S03/c010/gt/gt.txt'
+    gt_bb = read_gt_txt(gt_annot_file)
 
     #Read and filter detections
     if detector == "MaskR-CNN":
