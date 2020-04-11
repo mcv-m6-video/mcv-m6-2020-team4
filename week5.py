@@ -50,7 +50,7 @@ def task1(detector, tracking_method, postprocessing, visualization):
     #Postprocessing
     det_bb_clean = clean_tracks(copy.deepcopy(det_bb_tracking), id_max)
     if postprocessing == "RemoveParked":
-        det_bb_clean = remove_parked(copy.deepcopy(det_bb_clean), id_max, threshold = 5.5)
+        det_bb_clean = remove_parked(copy.deepcopy(det_bb_clean), id_max, threshold = 10.0)
     print("Postprocessing finished")
     #Results
     ap = calculate_ap(det_bb_clean, copy.deepcopy(gt_bb), 0, video_n_frames, mode='sort')
