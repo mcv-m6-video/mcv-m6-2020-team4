@@ -7,7 +7,7 @@ import copy
 
 from utils.data import read_detections_file, read_xml_gt, filter_gt, read_xml_gt_options, filter_det_confidence
 from utils.data import save_frames, number_of_images_jpg
-#from faster_rcnn import inference, train
+from faster_rcnn import inference, train
 from metrics.mAP import calculate_ap
 from tracking.tracking import tracking_iou, kalman_filter_tracking
 from utils.utils import get_files_from_dir

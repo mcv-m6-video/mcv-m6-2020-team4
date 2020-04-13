@@ -190,12 +190,22 @@ def filter_gt(gt_bb, classes_to_keep):
             gtr_bb.append(gt_bb[i])
     return gtr_bb
 
+
 def filter_det_confidence(det_bb, threshold = 0.5):
     detr_bb = []
     for i in range(0, len(det_bb)):
         if det_bb[i][7] >= threshold:
             detr_bb.append(det_bb[i])
     return detr_bb
+
+
+def filter_det_confidence_dataset(det_bb, threshold=0.5):
+    detr_bb = []
+    for i in range(0, len(det_bb)):
+        if det_bb[i][7] >= threshold:
+            detr_bb.append(det_bb[i][:-1])
+    return detr_bb
+
 
 def read_gt_txt(path):
     """
