@@ -7,6 +7,7 @@ from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2.model_zoo import model_zoo
 from torch import nn
+from torch.utils.data import DataLoader
 from torchvision import models
 from torchvision import transforms as T
 from torchvision.datasets import ImageFolder
@@ -107,5 +108,29 @@ if __name__ == '__main__':
     cameras = os.listdir(root_dir)
     # generate_car_crops(root_dir, cameras)
 
-    train = ImageFolder("/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/data/train")
-    test = ImageFolder("/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/data/test")
+    base_tfms = T.Compose([T.ToTensor(), T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    train = ImageFolder("/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/data/train", transform=base_tfms)
+    test = ImageFolder("/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/data/test", transform=base_tfms)
+
+    train_loader = DataLoader(train, batch_size=64, shuffle=True)
+    test_loader = DataLoader(train, batch_size=64, shuffle=True)
+
+    model = Net(embedding_size=256)
+    model = model.cuda()
+
+    from pytorch_metric_learning.miners import MultiSimilarityMiner
+    from pytorch_metric_learning.losses import TripletMarginLoss
+
+    miner = MultiSimilarityMiner(epsilon=0.1)
+    loss_func = TripletMarginLoss(margin=0.1)
+
+    for images, labels in train_loader:
+        images = images.cuda()
+        labels = labels.cuda()
+        embeddings = model(images)
+        pairs = miner(embeddings, labels)
+        print(pairs)
+        loss = loss_func(embeddings, labels, pairs)
+
+
+
