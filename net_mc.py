@@ -1,18 +1,22 @@
 import os
 
+from tqdm import tqdm
 import cv2
 import numpy as np
 import torch
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2.model_zoo import model_zoo
+from torch import optim as optim
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import models
 from torchvision import transforms as T
 from torchvision.datasets import ImageFolder
 
-from utils.data import read_gt_txt
+from utils.data import read_gt_txt, filter_det_confidence, read_detections_file
+from pytorch_metric_learning import losses, miners, samplers, trainers, testers
+import pytorch_metric_learning.utils.logging_presets as logging_presets
 
 
 def get_crops_from_dets(image_folder, dets, out_folder, camera_id):
@@ -66,12 +70,12 @@ def sync_frames(root_dir, cameras, offsets):
     return synced_frames, camera_frames
 
 
-def cut_det(im, box):
-    cutted = im[box[1]: box[3], box[0]:box[2], :]
-    cutted = cv2.resize(cutted, (224, 224))
-    cutted = T.ToTensor()(cutted)
-
-    return cutted
+def generate_car_crops(root_dir, cameras):
+    for camera in cameras:
+        dets = np.array(read_gt_txt(os.path.join(root_dir, camera, "gt", "gt.txt")))
+        out_dir = os.path.join(root_dir, "crops")
+        os.makedirs(out_dir, exist_ok=True)
+        get_crops_from_dets(os.path.join(root_dir, camera, "images"), dets, out_dir, camera)
 
 
 def get_detector():
@@ -95,42 +99,127 @@ def perform_det(predictor, im):
     return boxes
 
 
-def generate_car_crops(root_dir, cameras):
-    for camera in cameras:
-        dets = np.array(read_gt_txt(os.path.join(root_dir, camera, "gt", "gt.txt")))
-        out_dir = os.path.join(root_dir, "crops")
-        os.makedirs(out_dir, exist_ok=True)
-        get_crops_from_dets(os.path.join(root_dir, camera, "images"), dets, out_dir, camera)
+def cut_det(im, box):
+    cutted = im[box[1]: box[3], box[0]:box[2], :]
+    cutted = cv2.resize(cutted, (224, 224))
+    base_tfms = T.Compose([T.ToTensor(), T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    cutted = base_tfms(cutted)
+
+    return cutted
+
+
+def get_camera_embeddings(model, camera_folder, use_dets=True):
+    embeddings = []
+    if use_dets:
+        dets = np.array(filter_det_confidence(read_detections_file(os.path.join(camera_folder, "det", "det_mask_rcnn.txt"))))
+        frames = np.unique(dets[:, 0].astype(int))
+    else:
+        predictor = get_detector()
+        frames = len(os.listdir(os.path.join(camera_folder, "images")))
+
+    for image in sorted(os.listdir(os.path.join(camera_folder, "images"))):
+        frame = int(image.split(".")[0].split("_")[-1])
+
+        im = cv2.imread(os.path.join(camera_folder, "images", image))
+        if use_dets:
+            if frame not in frames:
+                embeddings.append([])
+            else:
+                frame_dets = dets[dets[:, 0].astype(int) == frame]
+                frame_embeds = []
+                for det in frame_dets:
+                    box = det[-5:-1].astype(float).astype(int)
+                    cutted_im = cut_det(im, box)
+                    cutted_im = cutted_im.cuda()
+
+                    frame_embeds.append(model.get_embedding(cutted_im))
+
+                embeddings.append(torch.stack(frame_embeds))
+        else:
+            preds = perform_det(predictor, im)
+
+            if len(preds) == 0:
+                embeddings.append([])
+            else:
+                frame_embeds = []
+                for box in preds:
+                    cutted_im = cut_det(im, box)
+                    cutted_im = cutted_im.cuda()
+
+                    frame_embeds.append(model.get_embedding(cutted_im))
+
+                embeddings.append(frame_embeds)
+
+    return embeddings
+
+
 
 
 if __name__ == '__main__':
-    root_dir = "/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/train/S04"
-    cameras = os.listdir(root_dir)
-    # generate_car_crops(root_dir, cameras)
 
     base_tfms = T.Compose([T.ToTensor(), T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-    train = ImageFolder("/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/data/train", transform=base_tfms)
-    test = ImageFolder("/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/data/test", transform=base_tfms)
+    train_tfms = T.Compose([T.RandomHorizontalFlip(), base_tfms])
 
-    train_loader = DataLoader(train, batch_size=64, shuffle=True)
-    test_loader = DataLoader(train, batch_size=64, shuffle=True)
+    train_dataset = ImageFolder("datasets/m6_data/train", transform=train_tfms)
+    val_dataset = ImageFolder("datasets/m6_data/test", transform=base_tfms)
 
-    model = Net(embedding_size=256)
+    trunk = Net(embedding_size=256)
+    trunk = trunk.cuda()
+
+
+    # Set the loss function
+    loss = losses.TripletMarginLoss(margin=0.01)
+
+    trunk_optimizer = torch.optim.Adam(trunk.parameters(), lr=0.00001, weight_decay=0.00005)
+
+
+# Set the mining function
+    miner = miners.MultiSimilarityMiner(epsilon=0.1)
+
+# Set the dataloader sampler
+    sampler = samplers.MPerClassSampler(train_dataset.targets, m=4, length_before_new_iter=3200)
+
+# Set other training parameters
+    batch_size = 64
+    num_epochs = 200
+
+# Package the above stuff into dictionaries.
+    models = {"trunk": trunk}
+    optimizers = {"trunk_optimizer": trunk_optimizer}
+    loss_funcs = {"metric_loss": loss}
+    mining_funcs = {"tuple_miner": miner}
+
+    record_keeper, _, _ = logging_presets.get_record_keeper("example_logs", "example_tensorboard")
+    hooks = logging_presets.get_hook_container(record_keeper)
+    dataset_dict = {"val": val_dataset}
+    model_folder = "example_saved_models"
+
+# Create the tester
+    tester = testers.GlobalEmbeddingSpaceTester(end_of_testing_hook=hooks.end_of_testing_hook)
+    end_of_epoch_hook = hooks.end_of_epoch_hook(tester, dataset_dict, model_folder)
+    trainer = trainers.MetricLossOnly(models,
+                                    optimizers,
+                                    batch_size,
+                                    loss_funcs,
+                                    mining_funcs,
+                                    train_dataset,
+                                    sampler=sampler,
+                                    end_of_iteration_hook=hooks.end_of_iteration_hook,
+                                    end_of_epoch_hook=end_of_epoch_hook)
+
+    trainer.train(num_epochs=num_epochs)
+
+
+    root_dir = "/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/train/S03"
+    cameras = os.listdir(root_dir)
+
+    camera_embeddings = {}
+    model = torch.load('model_256.pt')
     model = model.cuda()
+    model.eval()
 
-    from pytorch_metric_learning.miners import MultiSimilarityMiner
-    from pytorch_metric_learning.losses import TripletMarginLoss
-
-    miner = MultiSimilarityMiner(epsilon=0.1)
-    loss_func = TripletMarginLoss(margin=0.1)
-
-    for images, labels in train_loader:
-        images = images.cuda()
-        labels = labels.cuda()
-        embeddings = model(images)
-        pairs = miner(embeddings, labels)
-        print(pairs)
-        loss = loss_func(embeddings, labels, pairs)
-
+    for camera in cameras:
+        dir = os.path.join(root_dir, camera)
+        camera_embeddings[camera] = get_camera_embeddings(model, dir)
 
 
