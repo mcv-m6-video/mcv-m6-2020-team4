@@ -7,7 +7,7 @@
 - [Diego Alejandro Velázquez](https://github.com/dvd42) - diegovd0296@gmail.com
 
 ## Summary
-This repository contains all the needed files to compleat the task for the M6 Video analysis module at the masters of Computer Vision. 
+This repository contains all the needed files to compleat the task for the M6 Video analysis module at the masters of Computer Vision for Team 4. Find also in the README file the link to our slides for each week with a detailed explanation of the developed algorithms. There is also a little scheme of the files contained in each folder.
 
 
 ## Usage 💻
