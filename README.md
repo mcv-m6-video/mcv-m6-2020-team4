@@ -11,7 +11,29 @@ This repository contains all the needed files to compleat the task for the M6 Vi
 
 
 ## Usage 💻
-
+```
+├── utils
+│   ├── bgModels.py
+│   ├── cost_functions.py
+│   ├── data.py
+│   ├── optical_flow_visualization.py
+│   ├── postprocessing.py
+│   ├── sort.py
+│   ├── utils.py
+│   ├── visualization.py
+├── metrics
+│   ├── iou.py
+│   ├── mAP.py
+│   ├── optical_flow.py
+├── tracking
+│   ├── new_tracking.py
+│   ├── optical_flow.py
+│   ├── tracking.py
+├── faster_rcnn
+│   ├── faster_rcnn.py
+│   ├── faster_rcnn_new.py
+```
+See examples of execution in week#.py files.
 
 ## Link to slides
 
