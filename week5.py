@@ -45,7 +45,7 @@ def task1(frames_path, detections_file, gt_file, tracking_method, postprocessing
     if postprocessing:
         print("Starting postprocessing tracking")
         det_bb_tracking = clean_tracks(copy.deepcopy(det_bb_tracking), id_max)
-        det_bb_tracking = remove_parked(copy.deepcopy(det_bb_tracking), id_max, threshold=25.0)
+        det_bb_tracking = remove_parked(copy.deepcopy(det_bb_tracking), id_max, threshold=10.0)
 
     # Results
     print("Start obtaining metrics")
@@ -55,8 +55,8 @@ def task1(frames_path, detections_file, gt_file, tracking_method, postprocessing
     # Create animation if required
     if visualization:
         print("Start storing animation")
-        ini_frame = 550
-        end_frame = 650
+        ini_frame = 700
+        end_frame = 800
         frames_path = 'datasets/AICity_data/train/S03/c010/data'
         animation_tracks(det_bb_tracking, id_max, ini_frame, end_frame, frames_path)
 

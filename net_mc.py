@@ -1,4 +1,6 @@
+import itertools
 import os
+from copy import deepcopy
 
 import cv2
 import numpy as np
@@ -9,11 +11,14 @@ from detectron2.engine import DefaultPredictor
 from detectron2.model_zoo import model_zoo
 from pytorch_metric_learning import losses, miners, samplers, trainers, testers
 from torch import nn
+from torch.utils.data import DataLoader
 from torchvision import transforms as T
 from torchvision.datasets import ImageFolder
 from torchvision import models
 
+from metrics.mAP import calculate_ap
 from utils.data import read_gt_txt, filter_det_confidence, read_detections_file
+from utils.visualization import animation_tracks
 from week5 import task1
 
 
@@ -184,6 +189,20 @@ def sync_cameras(ref_camera, camera_embeddings, camera_offsets, camera_detection
             synced_camera_embeddings[camera] = synced_embeddings
             synced_camera_detections[camera] = synced_detections
 
+    len_ref_camera = len(synced_camera_embeddings[ref_camera])
+
+    for (camera, embeddings), (camera2, detections) in zip(camera_embeddings.items(), camera_detections.items()):
+        if camera == ref_camera:
+            continue
+        while len(embeddings) < len_ref_camera:
+            embeddings.append([])
+
+        while len(detections) < len_ref_camera:
+            detections.append([])
+
+        synced_camera_embeddings[camera] = embeddings
+        synced_camera_detections[camera] = detections
+
     return synced_camera_embeddings, synced_camera_detections
 
 def build_and_train_model():
@@ -227,6 +246,24 @@ def build_and_train_model():
                                       end_of_epoch_hook=end_of_epoch_hook)
     trainer.train(num_epochs=num_epochs)
 
+def another_thing():
+    from torch.utils.tensorboard import SummaryWriter
+    model = Net(256)
+    model.load_state_dict(torch.load('/home/devsodin/Downloads/AIC20_track3_MTMC/trunk_best.pth'))
+    base_tfms = T.Compose([T.ToTensor(), T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    test = ImageFolder("/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/data/test", transform=base_tfms)
+    sampler = samplers.MPerClassSampler(test.targets, m=4, length_before_new_iter=3200)
+    dataloader = DataLoader(test, sampler=sampler, batch_size=32)
+    tensor_img, labels = next(iter(dataloader))
+    embedding = model(tensor_img)
+    writer = SummaryWriter()
+    writer.add_embedding(embedding, label_img=(tensor_img), tag="embedding")
+
+def strings_to_whatever(list_of_list_of_list):
+    new_list = []
+    for el in list_of_list_of_list:
+        new_list.append([int(el[0]), el[1], int(el[2]), float(el[3]), float(el[4]),float(el[5]),float(el[6]),float(el[7])])
+    return new_list
 
 if __name__ == '__main__':
     import pickle
@@ -282,17 +319,59 @@ if __name__ == '__main__':
 
     ref_camera = 'c013'
 
-    synced_embeddings, synced_detectecions = sync_cameras(ref_camera, camera_embeddings, camera_offsets, det_tracking)
+    synced_embeddings, synced_detections = sync_cameras(ref_camera, camera_embeddings, camera_offsets, det_tracking)
     ref_embeddings = synced_embeddings.pop(ref_camera, None)
-    ref_detections = synced_detectecions.pop(ref_camera, None)
+    ref_detections = synced_detections.pop(ref_camera, None)
 
     assert ref_embeddings is not None
     assert ref_detections is not None
 
-    for idx, (ref_embedding, ref_detection) in enumerate(zip(ref_embeddings, ref_detections)):
+    thr = 4
+    for frame_idx, (ref_frame_embeddings, ref_frame_detections) in enumerate(zip(ref_embeddings, ref_detections)):
+        for det_idx, (ref_embedding, ref_detection) in enumerate(zip(ref_frame_embeddings, ref_frame_detections)):
+            ref_detection = np.array(ref_detection)
+            for (camera, embeddings), (camera, detections) in zip(synced_embeddings.items(), synced_detections.items()):
+                embed = embeddings[frame_idx]
+                dets = detections[frame_idx]
 
-        if len(ref_detection) >= 0:
-            for (camera, embeddings), (camera2, detections) in zip(synced_embeddings.items(), synced_detectecions.items()):
+                if dets:
+                    dets = np.array(dets)
+                    dist = torch.cdist(ref_embedding, embed)
 
-                embed = embeddings[idx]
-                dets = detections[idx]
+                    val, idxs = dist.min(1)
+                    mask = val < thr
+
+                    while torch.unique(idxs[mask]).size(0) != idxs[mask].size(0):
+                        thr = thr * 0.8
+                        mask = val < thr
+                    thr = 4
+                    if idxs[mask].numel() != 0:
+                        print("a",)
+                        synced_detections[camera][frame_idx][idxs[mask]][2] = ref_detection[2].astype("int")
+                        # synced_detections[camera][frame_idx][idxs[mask]][2] = 0
+
+    all_cameras_detections = synced_detections
+    all_cameras_detections[ref_camera] = ref_detections
+
+    all_cameras_detections = synced_detections
+
+    for camera, camera_dets in sorted(all_cameras_detections.items()):
+        gt_bb = read_gt_txt(os.path.join(root_dir, camera, "gt", "gt.txt"))
+        print(camera)
+        if camera == 'c015':
+            fps = 8
+        else:
+            fps = 10
+        ini_frame = 720 + int(camera_offsets[camera] * fps)
+        end_frame = 820 + int(camera_offsets[camera] * fps)
+        print(camera)
+        camera_dets = list(itertools.chain(*camera_dets))
+        camera_dets = strings_to_whatever(camera_dets)
+        frames_dir = os.path.join(root_dir, camera, "images")
+        id_max = max([int(v[2]) for v in camera_dets])
+        video_n_frames = max([int(v[0]) for v in camera_dets])
+        animation_tracks(camera_dets, id_max, ini_frame, end_frame, frames_dir, filename='video_{}.gif'.format(camera))
+
+        calculate_ap(camera_dets, deepcopy(gt_bb), 0, video_n_frames, mode='sort')
+
+

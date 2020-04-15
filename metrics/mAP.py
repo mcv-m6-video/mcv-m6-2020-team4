@@ -83,7 +83,7 @@ def calculate_ap(det_bb, gt_bb, ini_frame, last_frame, mode):
         acc.update([*y_true.keys()], [*y_pred.keys()], distances)
 
 
-    summary = mm.metrics.create().compute(acc, metrics=['idf1', 'precision', 'recall', 'idp'])
+    summary = mm.metrics.create().compute(acc, metrics=['idf1', 'precision', 'recall', 'idp', 'mota', 'motp'])
     print(summary)
     AP = AP / last_frame
     return AP
