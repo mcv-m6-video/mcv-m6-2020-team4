@@ -9,15 +9,26 @@ from detectron2.engine import DefaultPredictor
 from detectron2.model_zoo import model_zoo
 from torch import optim as optim
 from torch import nn
+from torch.optim import SGD
 from torch.utils.data import DataLoader
 from torchvision import models
 from torchvision import transforms as T
 from torchvision.datasets import ImageFolder
+from tqdm import tqdm
 
+from utils.data import read_gt_txt, read_detections_file, filter_det_confidence
+from week5 import task1
 from utils.data import read_gt_txt, filter_det_confidence, read_detections_file
 from pytorch_metric_learning import losses, miners, samplers, trainers, testers
 import pytorch_metric_learning.utils.logging_presets as logging_presets
 
+
+def generate_car_crops(root_dir, cameras):
+    for camera in cameras:
+        dets = np.array(read_gt_txt(os.path.join(root_dir, camera, "gt", "gt.txt")))
+        out_dir = os.path.join(root_dir, "crops")
+        os.makedirs(out_dir, exist_ok=True)
+        get_crops_from_dets(os.path.join(root_dir, camera, "images"), dets, out_dir, camera)
 
 def get_crops_from_dets(image_folder, dets, out_folder, camera_id):
     frames = np.unique(dets[:, 0])
@@ -153,9 +164,64 @@ def get_camera_embeddings(model, camera_folder, use_dets=True):
     return embeddings
 
 
+def cut_det(im, box):
+    cutted = im[box[1]: box[3], box[0]:box[2], :]
+    cutted = cv2.resize(cutted, (224, 224))
+    base_tfms = T.Compose([T.ToTensor(), T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    cutted = base_tfms(cutted)
+
+    return cutted
+
+
+def get_camera_embeddings(model, camera_folder, use_dets=True):
+    embeddings = []
+    if use_dets:
+        dets = np.array(filter_det_confidence(read_detections_file(os.path.join(camera_folder, "det", "det_mask_rcnn.txt"))))
+        frames = np.unique(dets[:, 0].astype(int))
+    else:
+        predictor = get_detector()
+        frames = len(os.listdir(os.path.join(camera_folder, "images")))
+
+    for image in sorted(os.listdir(os.path.join(camera_folder, "images"))):
+        frame = int(image.split(".")[0].split("_")[-1])
+
+        im = cv2.imread(os.path.join(camera_folder, "images", image))
+        if use_dets:
+            if frame not in frames:
+                embeddings.append([])
+            else:
+                frame_dets = dets[dets[:, 0].astype(int) == frame]
+                frame_embeds = []
+                for det in frame_dets:
+                    box = det[-5:-1].astype(float).astype(int)
+                    cutted_im = cut_det(im, box)
+                    cutted_im = cutted_im.cuda()
+
+                    frame_embeds.append(model.get_embedding(cutted_im))
+
+                embeddings.append(torch.stack(frame_embeds))
+        else:
+            preds = perform_det(predictor, im)
+
+            if len(preds) == 0:
+                embeddings.append([])
+            else:
+                frame_embeds = []
+                for box in preds:
+                    cutted_im = cut_det(im, box)
+                    cutted_im = cutted_im.cuda()
+
+                    frame_embeds.append(model.get_embedding(cutted_im))
+
+                embeddings.append(frame_embeds)
+
+    return embeddings
 
 
 if __name__ == '__main__':
+    root_dir = "/home/devsodin/Downloads/AIC20_track3_MTMC/AIC20_track3/train/S03"
+    cameras = os.listdir(root_dir)
+    # generate_car_crops(root_dir, cameras)
 
     base_tfms = T.Compose([T.ToTensor(), T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     train_tfms = T.Compose([T.RandomHorizontalFlip(), base_tfms])
@@ -214,9 +280,18 @@ if __name__ == '__main__':
     cameras = os.listdir(root_dir)
 
     camera_embeddings = {}
+    det_tracking = {}
     model = torch.load('model_256.pt')
     model = model.cuda()
     model.eval()
+
+    for camera in cameras:
+        dir = os.path.join(root_dir, camera)
+        camera_embeddings[camera] = get_camera_embeddings(model, dir)
+        det_file = os.path.join(root_dir, camera, "det", "det_mask_rcnn.txt")
+        frames_path = os.path.join(root_dir, camera, "images")
+        gt_file = os.path.join(root_dir, camera, "gt", "gt.txt")
+        det_tracking[camera] = task1(frames_path, det_file, gt_file, "Kalman")
 
     for camera in cameras:
         dir = os.path.join(root_dir, camera)
