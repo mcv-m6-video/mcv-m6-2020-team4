@@ -102,7 +102,7 @@ def kalman_filter_tracking(det_bb, video_n_frames, model_type):
     """
     bb_id_updated = []
     tracker = Sort(model_type = model_type)
-    for frame_num in range(0,video_n_frames):
+    for frame_num in range(1,video_n_frames + 1):
         #Get only bb of current frame
         dets_all_info = list(filter(lambda x: x[0] == frame_num, det_bb))
         dets = np.array([[bb[3], bb[4], bb[5], bb[6]] for bb in dets_all_info]) #[[x1,y1,x2,y2]]
@@ -110,5 +110,6 @@ def kalman_filter_tracking(det_bb, video_n_frames, model_type):
         trackers = tracker.update(dets)
         #Obtain id and bb in correct format
         for bb_dets, bb_update in zip(dets_all_info, trackers):
-            bb_id_updated.append([bb_dets[0], bb_dets[1], int(bb_update[4]), bb_update[0], bb_update[1], bb_update[2], bb_update[3], bb_dets[7]])
+            # bb_id_updated.append([bb_dets[0], bb_dets[1], int(bb_update[4]), bb_update[0], bb_update[1], bb_update[2], bb_update[3], bb_dets[7]])
+            bb_id_updated.append([bb_dets[0], bb_dets[1], int(bb_update[4]), bb_dets[3],bb_dets[4], bb_dets[5], bb_dets[6], bb_dets[7]])
     return bb_id_updated
