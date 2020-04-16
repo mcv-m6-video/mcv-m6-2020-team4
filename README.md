@@ -43,7 +43,7 @@ See examples of execution in week#.py files.
 |**Week 2**|[Slides week 2](https://docs.google.com/presentation/d/1-UHPhtYsmF_734AwNUiY4mrO-wnJpJK_MNgYcoq-Xbs/edit?usp=sharing)|
 |**Week 3**|[Slides week 3](https://docs.google.com/presentation/d/1Adx_ArI-yE8k_10-vO0ZZc20_3yzGV9KDUf5H1HKdTk/edit?usp=sharing)|
 |**Week 4**|[Slides week 4](https://docs.google.com/presentation/d/1sd6TTjfsLaAH1kTayqzNFSoNe_AiSP1YfcjKzBdHG8E/edit?usp=sharing)|
-|**Week 5**|[Slides week 5](https://docs.google.com/presentation/d/1MTCcpng-TTtacXsIKwuimg38bEGhQZOGi9io14Ir41g/edit?usp=sharing)|
+|**Week 5 (FINAL)**|[Slides week 5](https://docs.google.com/presentation/d/1MTCcpng-TTtacXsIKwuimg38bEGhQZOGi9io14Ir41g/edit?usp=sharing)|
 
 
 ### Week1 
