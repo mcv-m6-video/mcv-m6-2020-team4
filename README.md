@@ -7,7 +7,7 @@
 - [Diego Alejandro Velázquez](https://github.com/dvd42) - diegovd0296@gmail.com
 
 ## Summary
-This repository contains all the needed files to compleat the task for the M6 Video analysis module at the masters of Computer Vision for Team 4. Find also in the README file the link to our slides for each week with a detailed explanation of the developed algorithms. There is also a little scheme of the files contained in each folder. Find in the results folder a pdf version of the final presentation.
+This repository contains all the needed files to compleat the task for the M6 Video analysis module at the masters of Computer Vision for Team 4. Find also in the README file the link to our slides for each week with a detailed explanation of the developed algorithms and the report of the work done. There is also a little scheme of the files contained in each folder. Find in the results folder a pdf version of the final presentation and the report.
 
 
 ## Usage 💻
@@ -35,7 +35,7 @@ This repository contains all the needed files to compleat the task for the M6 Vi
 ```
 See examples of execution in week#.py files.
 
-## Link to slides
+## Links
 
 | Week | Link |
 | ------------- | ------------ |
@@ -44,7 +44,7 @@ See examples of execution in week#.py files.
 |**Week 3**|[Slides week 3](https://docs.google.com/presentation/d/1Adx_ArI-yE8k_10-vO0ZZc20_3yzGV9KDUf5H1HKdTk/edit?usp=sharing)|
 |**Week 4**|[Slides week 4](https://docs.google.com/presentation/d/1sd6TTjfsLaAH1kTayqzNFSoNe_AiSP1YfcjKzBdHG8E/edit?usp=sharing)|
 |**Week 5 (FINAL)**|[Slides week 5](https://docs.google.com/presentation/d/1MTCcpng-TTtacXsIKwuimg38bEGhQZOGi9io14Ir41g/edit?usp=sharing)|
-
+|**FINAL REPORT**|[Report](https://www.overleaf.com/read/pjqhggcfpfwj)|
 
 ### Week1 
 * [x] Task 1: Detection metrics.
