@@ -7,7 +7,7 @@
 - [Diego Alejandro Velázquez](https://github.com/dvd42) - diegovd0296@gmail.com
 
 ## Summary
-This repository contains all the needed files to compleat the task for the M6 Video analysis module at the masters of Computer Vision for Team 4. Find also in the README file the link to our slides for each week with a detailed explanation of the developed algorithms and the report of the work done. Usage shows the different files contained in each folder, for a further explanation on how to use the functions take a look to week*.py files. Find in the results folder a pdf version of the [final presentation](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Final_presentation_M6_Team4.pdf) and the [final report](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Video_Analysis_FINAL_REPORT_Team4.pdf).
+This repository contains all the needed files to compleat the task for the M6 Video analysis module at the masters of Computer Vision for Team 4. Find also in the README file the link to our slides for each week with a detailed explanation of the developed algorithms and the report of the work done. Usage shows the different files contained in each folder, for a further explanation on how to use the functions take a look to week*.py files. Find in the results folder a pdf version of the [final presentation](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Final_presentation_M6_Team4.pdf), the [final report](https://github.com/mcv-m6-video/mcv-m6-2020-team4/blob/master/Results/Video_Analysis_FINAL_REPORT_Team4.pdf) and some of the qualitative results for each week assignment.
 
 
 ## Usage 💻
